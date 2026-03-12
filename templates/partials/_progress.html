@@ -1,0 +1,24 @@
+{# partials/_progress.html #}
+{# Progress Bar Component #}
+{# Usage: {% include 'partials/_progress.html' with value=75 max=100 color="success" show_label=True %} #}
+
+<div class="w-full">
+    {% if show_label %}
+    <div class="flex justify-between items-center mb-2">
+        <span class="text-xs font-medium text-text-muted">{{ label|default:"Progression" }}</span>
+        <span class="text-xs font-medium text-text-main">{{ value|default:0 }}%</span>
+    </div>
+    {% endif %}
+    <div class="w-full h-2 bg-dark-surface2 rounded-full overflow-hidden">
+        {% widthratio value|default:0 max|default:100 100 as percent %}
+        <div class="h-full rounded-full transition-all duration-500 ease-out
+            {% if color == 'primary' %}bg-accent-primary{% endif %}
+            {% if color == 'success' %}bg-accent-success{% endif %}
+            {% if color == 'danger' %}bg-accent-danger{% endif %}
+            {% if color == 'warning' %}bg-accent-warning{% endif %}
+            {% if color == 'purple' %}bg-accent-purple{% endif %}
+            {% if not color %}bg-accent-primary{% endif %}"
+            style="width: {{ percent }}%">
+        </div>
+    </div>
+</div>

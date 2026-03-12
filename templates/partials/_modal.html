@@ -1,0 +1,46 @@
+{# partials/_modal.html #}
+{# Modal Shell Component #}
+{# Usage: {% include 'partials/_modal.html' with id="createModal" title="Create" size="lg" %} #}
+
+<div id="{{ id|default:'modal' }}" 
+     class="modal-overlay fixed inset-0 z-50 flex items-center justify-center p-4 hidden"
+     role="dialog" 
+     aria-modal="true"
+     x-data="{ open: false }"
+     x-show="open"
+     x-transition:enter="transition ease-out duration-200"
+     x-transition:enter-start="opacity-0"
+     x-transition:enter-end="opacity-100"
+     x-transition:leave="transition ease-in duration-150"
+     x-transition:leave-start="opacity-100"
+     x-transition:leave-end="opacity-0">
+    
+    <div class="absolute inset-0 bg-black/70 backdrop-blur-sm" onclick="closeModal('{{ id|default:"modal" }}')"></div>
+    
+    <div class="modal-content relative w-full max-h-[90vh] overflow-auto
+        {% if size == 'sm' %}max-w-md{% elif size == 'lg' %}max-w-2xl{% elif size == 'xl' %}max-w-4xl{% else %}max-w-lg{% endif %}
+        animate-fade-in">
+        
+        {% if title %}
+        <div class="flex items-center justify-between p-5 border-b border-dark-border sticky top-0 bg-dark-surface1 z-10">
+            <h3 class="text-lg font-bold text-text-main">{{ title }}</h3>
+            <button onclick="closeModal('{{ id|default:"modal" }}')" 
+                    class="p-1.5 rounded-lg hover:bg-dark-surface2 transition-colors text-text-muted hover:text-text-main">
+                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+        </div>
+        {% endif %}
+        
+        <div class="p-5">
+            {{ slot }}
+        </div>
+        
+        {% if actions %}
+        <div class="flex justify-end gap-3 p-5 border-t border-dark-border sticky bottom-0 bg-dark-surface1">
+            {{ actions }}
+        </div>
+        {% endif %}
+    </div>
+</div>

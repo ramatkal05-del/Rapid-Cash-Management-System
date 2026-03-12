@@ -1,0 +1,155 @@
+{% extends 'base.html' %}
+
+{% block title %}Créer un Associé - Rapid Cash{% endblock %}
+
+{% block page_title %}Nouvel Associé{% endblock %}
+{% block page_subtitle %}Enregistrer un nouveau partenaire associé{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+    <div class="card-dark">
+        <div class="p-6 border-b border-dark-border">
+            <div class="flex items-center justify-between">
+                <h3 class="text-xl font-bold text-text-main">Informations de l'Associé</h3>
+                <a href="{% url 'core:associates_list' %}" class="btn-secondary text-sm">
+                    <svg class="w-4 h-4 mr-1.5 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                    Annuler
+                </a>
+            </div>
+        </div>
+        
+        <form method="post" class="p-6 space-y-6">
+            {% csrf_token %}
+            
+            <!-- User Information -->
+            <div>
+                <h4 class="text-lg font-semibold text-text-main mb-4">Informations Utilisateur</h4>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-text-main mb-2">Nom d'utilisateur *</label>
+                        {{ form.username }}
+                        {% if form.username.errors %}
+                        <p class="text-accent-danger text-sm mt-1">{{ form.username.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-text-main mb-2">Email *</label>
+                        {{ form.email }}
+                        {% if form.email.errors %}
+                        <p class="text-accent-danger text-sm mt-1">{{ form.email.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-text-main mb-2">Mot de passe *</label>
+                        {{ form.password }}
+                        {% if form.password.errors %}
+                        <p class="text-accent-danger text-sm mt-1">{{ form.password.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-text-main mb-2">Téléphone</label>
+                        {{ form.phone }}
+                        {% if form.phone.errors %}
+                        <p class="text-accent-danger text-sm mt-1">{{ form.phone.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-text-main mb-2">Prénom</label>
+                        {{ form.first_name }}
+                        {% if form.first_name.errors %}
+                        <p class="text-accent-danger text-sm mt-1">{{ form.first_name.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-text-main mb-2">Nom</label>
+                        {{ form.last_name }}
+                        {% if form.last_name.errors %}
+                        <p class="text-accent-danger text-sm mt-1">{{ form.last_name.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Contract Information -->
+            <div>
+                <h4 class="text-lg font-semibold text-text-main mb-4">Informations du Contrat</h4>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-text-main mb-2">Montant engagé *</label>
+                        {{ form.amount_engaged }}
+                        {% if form.amount_engaged.errors %}
+                        <p class="text-accent-danger text-sm mt-1">{{ form.amount_engaged.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-text-main mb-2">Devise *</label>
+                        {{ form.currency }}
+                        {% if form.currency.errors %}
+                        <p class="text-accent-danger text-sm mt-1">{{ form.currency.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-text-main mb-2">Durée (mois)</label>
+                        {{ form.duration_months }}
+                        {% if form.duration_months.errors %}
+                        <p class="text-accent-danger text-sm mt-1">{{ form.duration_months.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-text-main mb-2">Retour attendu (%) *</label>
+                        {{ form.expected_return_percent }}
+                        {% if form.expected_return_percent.errors %}
+                        <p class="text-accent-danger text-sm mt-1">{{ form.expected_return_percent.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Actions -->
+            <div class="flex justify-end gap-3 pt-4 border-t border-dark-border">
+                <a href="{% url 'core:associates_list' %}" class="btn-secondary">
+                    Annuler
+                </a>
+                <button type="submit" class="btn-primary">
+                    <svg class="w-4 h-4 mr-1.5 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                    </svg>
+                    Créer l'Associé
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+    input, select {
+        width: 100%;
+        padding: 0.625rem 0.875rem;
+        background: #131421;
+        border: 1px solid #252640;
+        border-radius: 0.5rem;
+        color: #e8eaf6;
+        transition: all 0.2s ease;
+    }
+    
+    input:focus, select:focus {
+        outline: none;
+        border-color: #4f8ef7;
+        box-shadow: 0 0 0 3px rgba(79, 142, 247, 0.2);
+    }
+    
+    input::placeholder, select::placeholder {
+        color: #5a5d7a;
+    }
+</style>
+{% endblock %}

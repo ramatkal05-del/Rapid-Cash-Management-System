@@ -1,0 +1,145 @@
+{% extends 'base.html' %}
+
+{% block title %}Détail Opération - Rapid Cash{% endblock %}
+
+{% block page_title %}Détail de l'Opération{% endblock %}
+{% block page_subtitle %}Informations complètes de la transaction{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto space-y-6">
+    <!-- Operation Details Card -->
+    <div class="card-dark">
+        <div class="p-6 border-b border-dark-border">
+            <div class="flex items-center justify-between">
+                <h3 class="text-xl font-bold text-text-main">Informations de la Transaction</h3>
+                <div class="flex gap-2">
+                    <button class="btn-secondary text-sm" onclick="history.back()">
+                        <svg class="w-4 h-4 mr-1.5 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+                        </svg>
+                        Retour
+                    </button>
+                    {% if user.role == 'ADMIN' %}
+                    <a href="{% url 'create_operation' %}" class="btn-primary text-sm">
+                        <svg class="w-4 h-4 mr-1.5 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                        </svg>
+                        Nouvelle Opération
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="p-6 space-y-6">
+            <!-- Amount Section -->
+            <div class="bg-dark-surface2 rounded-xl p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-text-muted text-sm">Montant</p>
+                        <p class="text-3xl font-bold text-accent-primary mt-1">
+                            {% if operation.currency_ref %}
+                                {{ operation.amount_ref|floatformat:2 }} {{ operation.currency_ref.symbol }}
+                            {% else %}
+                                {{ operation.amount_ref|floatformat:2 }} USD
+                            {% endif %}
+                        </p>
+                        {% if operation.amount_orig != operation.amount_ref %}
+                        <p class="text-sm text-text-muted mt-1">
+                            {% if operation.currency_orig %}
+                                ({{ operation.amount_orig|floatformat:2 }} {{ operation.currency_orig.symbol }})
+                            {% else %}
+                                ({{ operation.amount_orig|floatformat:2 }} USD)
+                            {% endif %}
+                        </p>
+                        {% endif %}
+                    </div>
+                    <div class="w-16 h-16 rounded-full bg-accent-primary/20 flex items-center justify-center">
+                        <svg class="w-8 h-8 text-accent-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Details Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Left Column -->
+                <div class="space-y-4">
+                    <div>
+                        <label class="text-text-muted text-sm">Type d'Opération</label>
+                        <p>
+                            <span class="badge badge-{{ operation.type == 'SEND' ? 'success' : 'warning' }}">
+                                {% if operation.type == 'SEND' %}Envoi{% else %}Réception{% endif %}
+                            </span>
+                        </p>
+                    </div>
+                    
+                    <div>
+                        <label class="text-text-muted text-sm">Numéro de Transaction</label>
+                        <p class="text-text-main font-medium font-mono">{{ operation.transaction_number }}</p>
+                    </div>
+                    
+                    <div>
+                        <label class="text-text-muted text-sm">Agent</label>
+                        <div class="flex items-center gap-2 mt-1">
+                            <div class="w-7 h-7 rounded-full bg-accent-purple/20 flex items-center justify-center text-accent-purple text-xs font-medium">
+                                {{ operation.agent.username|first|upper }}
+                            </div>
+                            <span class="text-text-main font-medium">{{ operation.agent.username }}</span>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label class="text-text-muted text-sm">Caisse</label>
+                        <p class="text-text-main font-medium">
+                            {% if operation.caisse %}
+                                {{ operation.caisse.name }}
+                            {% else %}
+                                <span class="text-text-muted">-</span>
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+                
+                <!-- Right Column -->
+                <div class="space-y-4">
+                    <div>
+                        <label class="text-text-muted text-sm">Date et Heure</label>
+                        <p class="text-text-main font-medium">{{ operation.date_time|date:"d/m/Y H:i" }}</p>
+                    </div>
+                    
+                    <div>
+                        <label class="text-text-muted text-sm">Statut</label>
+                        <p>
+                            <span class="badge badge-{{ operation.status == 'COMPLETED' ? 'success' : 'warning' }}">
+                                {{ operation.get_status_display }}
+                            </span>
+                        </p>
+                    </div>
+                    
+                    <div>
+                        <label class="text-text-muted text-sm">Frais Calculés</label>
+                        <p class="text-text-main font-medium">{{ operation.fee_calculated|floatformat:2 }} {{ operation.currency_ref.symbol }}</p>
+                    </div>
+                    
+                    <div>
+                        <label class="text-text-muted text-sm">Taux de Change</label>
+                        <p class="text-text-main font-medium">{{ operation.exchange_rate|floatformat:6 }}</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Observation Section -->
+            {% if operation.observation %}
+            <div>
+                <label class="text-text-muted text-sm">Observation</label>
+                <div class="bg-dark-surface2 rounded-lg p-4 mt-2">
+                    <p class="text-text-main">{{ operation.observation|linebreaks }}</p>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,129 @@
+{% extends 'base.html' %}
+
+{% block title %}Gestion des Agents - Rapid Cash{% endblock %}
+
+{% block page_title %}Équipe & Accès{% endblock %}
+{% block page_subtitle %}Contrôle des privilèges et des commissions{% endblock %}
+
+{% block content %}
+<!-- Filters -->
+{% include 'partials/_filter_bar.html' with show_type=True show_status=True show_search=True type_options=user_roles selected_type=request.GET.role selected_status=request.GET.status hx_get=request.path hx_target='#users-table' %}
+
+<!-- Users Table -->
+<div class="card-dark" id="users-table">
+    <div class="flex items-center justify-between p-5 border-b border-dark-border">
+        <h3 class="font-bold text-text-main">
+            Utilisateurs
+            <span class="text-text-muted font-normal">({{ users.count }} résultats)</span>
+        </h3>
+        {% if user.role == 'ADMIN' %}
+        <a href="/admin/core/user/add/" class="btn-primary text-sm">
+            <svg class="w-4 h-4 mr-1.5 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/>
+            </svg>
+            Nouvel Utilisateur
+        </a>
+        {% endif %}
+    </div>
+    
+    <div class="overflow-x-auto">
+        {% if users %}
+        <table class="table-dark">
+            <thead>
+                <tr>
+                    <th>Profil</th>
+                    <th>Rôle</th>
+                    <th>Contact</th>
+                    <th>Commission</th>
+                    <th>Caisse</th>
+                    <th class="text-center">Statut</th>
+                    <th class="text-right">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for u in users %}
+                <tr class="hover:bg-dark-surface2/50 transition-colors">
+                    <td>
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-full bg-gradient-to-br from-accent-primary to-accent-purple flex items-center justify-center text-white font-semibold">
+                                {{ u.username|first|upper }}
+                            </div>
+                            <div>
+                                <p class="font-medium text-text-main">{{ u.username }}</p>
+                                <p class="text-xs text-text-muted">{{ u.email|default:"Sans email" }}</p>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        {% if u.role == 'ADMIN' %}
+                        <span class="badge badge-purple">Administrateur</span>
+                        {% elif u.role == 'AGENT' %}
+                        <span class="badge badge-info">Agent</span>
+                        {% elif u.role == 'ASSOCIATE' %}
+                        <span class="badge badge-warning">Associé</span>
+                        {% elif u.role == 'INVESTOR' %}
+                        <span class="badge badge-success">Investisseur</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-text-secondary">
+                        {{ u.phone|default:"Non renseigné" }}
+                    </td>
+                    <td>
+                        {% if u.role == 'AGENT' and u.commission_rate %}
+                        <span class="font-semibold text-accent-success bg-accent-success/10 px-3 py-1.5 rounded-xl">
+                            {{ u.commission_rate }}%
+                        </span>
+                        {% else %}
+                        <span class="text-text-muted">—</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-text-secondary">
+                        {% if u.caisse %}
+                            {{ u.caisse.name }} ({{ u.caisse.currency.code }})
+                        {% else %}
+                        <span class="text-text-muted">—</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-center">
+                        <span class="inline-flex items-center gap-1.5">
+                            <span class="w-2 h-2 rounded-full {% if u.is_active %}bg-accent-success{% else %}bg-accent-danger{% endif %}"></span>
+                            <span class="text-sm {% if u.is_active %}text-accent-success{% else %}text-accent-danger{% endif %}">
+                                {% if u.is_active %}Actif{% else %}Inactif{% endif %}
+                            </span>
+                        </span>
+                    </td>
+                    <td class="text-right">
+                        {% if user.role == 'ADMIN' %}
+                        <div class="flex items-center justify-end gap-2">
+                            <a href="/admin/core/user/{{ u.id }}/change/"
+                               class="inline-flex items-center text-xs font-semibold uppercase tracking-wide text-text-muted hover:text-accent-primary transition-colors">
+                                <svg class="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                                </svg>
+                                Éditer
+                            </a>
+                            {% if u.id != user.id and u.role != 'ADMIN' %}
+                            <form method="post" action="{% url 'core:delete_user' u.id %}" class="inline" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer {{ u.username }} ? Cette action est irréversible.');">
+                                {% csrf_token %}
+                                <button type="submit"
+                                        class="inline-flex items-center text-xs font-semibold uppercase tracking-wide text-text-muted hover:text-accent-danger transition-colors">
+                                    <svg class="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                    </svg>
+                                    Supprimer
+                                </button>
+                            </form>
+                            {% endif %}
+                        </div>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        {% include 'partials/_empty_state.html' with icon='users' title='Aucun utilisateur' message='Les utilisateurs apparaîtront ici' action_url='/admin/core/user/add/' action_text='Nouvel Utilisateur' %}
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,20 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom classes */
+.card-dark {
+    @apply bg-dark-surface1 border border-dark-border rounded-lg;
+}
+
+.btn-primary {
+    @apply px-4 py-2 bg-accent-primary text-white rounded-lg hover:bg-accent-secondary transition-colors;
+}
+
+.btn-secondary {
+    @apply px-4 py-2 bg-dark-surface2 text-text-main rounded-lg hover:bg-dark-surface3 transition-colors;
+}
+
+.input-dark {
+    @apply w-full px-4 py-2 bg-dark-surface3 border border-dark-border rounded-lg text-text-main;
+}

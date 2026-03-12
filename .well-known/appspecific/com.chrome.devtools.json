@@ -1,0 +1,9 @@
+{
+  "name": "Rapid Cash DevTools",
+  "version": "1.0.0",
+  "description": "Chrome DevTools configuration for Rapid Cash development",
+  "devtools": {
+    "enabled": true,
+    "features": ["console", "elements", "network", "sources"]
+  }
+}

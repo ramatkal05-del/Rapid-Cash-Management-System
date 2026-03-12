@@ -1,0 +1,280 @@
+{% extends 'base.html' %}
+
+{% block title %}Paramètres - Rapid Cash{% endblock %}
+
+{% block page_title %}Paramètres{% endblock %}
+{% block page_subtitle %}Configuration du système{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Settings Tabs -->
+    <div class="flex gap-2 border-b border-dark-border pb-4">
+        <a href="#general" class="px-4 py-2 rounded-lg text-sm font-medium bg-accent-primary/10 text-accent-primary">
+            Général
+        </a>
+        <a href="#fees" class="px-4 py-2 rounded-lg text-sm font-medium text-text-muted hover:text-text-main hover:bg-dark-surface2 transition-colors">
+            Grille de Frais
+        </a>
+        <a href="#security" class="px-4 py-2 rounded-lg text-sm font-medium text-text-muted hover:text-text-main hover:bg-dark-surface2 transition-colors">
+            Sécurité
+        </a>
+        <a href="#notifications" class="px-4 py-2 rounded-lg text-sm font-medium text-text-muted hover:text-text-main hover:bg-dark-surface2 transition-colors">
+            Notifications
+        </a>
+    </div>
+
+    <!-- General Settings Form -->
+    <form id="settings-form" class="space-y-6">
+        <!-- General Settings -->
+        <div class="card-dark" id="general">
+            <div class="p-5 border-b border-dark-border">
+                <h3 class="font-bold text-text-main">Paramètres Généraux</h3>
+                <p class="text-sm text-text-muted mt-1">Configuration de base du système</p>
+            </div>
+            <div class="p-5 space-y-6">
+                <!-- Company Name -->
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="font-medium text-text-main">Nom de l'Entreprise</p>
+                        <p class="text-sm text-text-muted">Nom affiché dans l'en-tête</p>
+                    </div>
+                    <input type="text" name="company_name" value="Rapid Cash" class="input-dark w-64 px-4 py-2 rounded-lg text-right">
+                </div>
+                
+                <!-- Currency -->
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="font-medium text-text-main">Devise de Référence</p>
+                        <p class="text-sm text-text-muted">Devise principale pour les rapports</p>
+                    </div>
+                    <select name="reference_currency" class="input-dark w-64 px-4 py-2 rounded-lg">
+                        <option>USD - Dollar US</option>
+                        <option>EUR - Euro</option>
+                    <option>CDF - Franc Congolais</option>
+                </select>
+            </div>
+            
+            <!-- Timezone -->
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="font-medium text-text-main">Fuseau Horaire</p>
+                    <p class="text-sm text-text-muted">Pour les timestamps</p>
+                </div>
+                <select class="input-dark w-64 px-4 py-2 rounded-lg">
+                    <option>Africa/Kinshasa</option>
+                    <option>UTC</option>
+                    <option>Europe/Paris</option>
+                </select>
+            </div>
+            
+            <!-- Language -->
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="font-medium text-text-main">Langue</p>
+                    <p class="text-sm text-text-muted">Langue de l'interface</p>
+                </div>
+                <select class="input-dark w-64 px-4 py-2 rounded-lg">
+                    <option>Français</option>
+                    <option>Anglais</option>
+                </select>
+            </div>
+        </div>
+        <div class="p-5 border-t border-dark-border flex justify-end">
+            <button class="btn-primary">Enregistrer</button>
+        </div>
+    </div>
+
+    <!-- Fee Grid -->
+    <div class="card-dark" id="fees">
+        <div class="p-5 border-b border-dark-border">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h3 class="font-bold text-text-main">Grille des Frais</h3>
+                    <p class="text-sm text-text-muted mt-1">Configuration des frais par tranche de montant</p>
+                </div>
+                <a href="/admin/operations/feegrid/add/" class="btn-secondary text-sm">
+                    <svg class="w-4 h-4 mr-1.5 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                    </svg>
+                    Ajouter
+                </a>
+            </div>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="table-dark">
+                <thead>
+                    <tr>
+                        <th>Montant Min</th>
+                        <th>Montant Max</th>
+                        <th>Frais</th>
+                        <th>Devise</th>
+                        <th class="text-right">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for fee in fee_grid %}
+                    <tr>
+                        <td class="font-mono">${{ fee.min_amount }}</td>
+                        <td class="font-mono">${{ fee.max_amount }}</td>
+                        <td class="font-mono text-accent-success">${{ fee.fee_amount }}</td>
+                        <td>{{ fee.currency.code }}</td>
+                        <td class="text-right">
+                            <a href="/admin/operations/feegrid/{{ fee.id }}/change/" class="text-accent-primary hover:underline text-sm">Éditer</a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="text-center py-8 text-text-muted">
+                            Configurez la grille des frais
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Security Settings -->
+    <div class="card-dark" id="security">
+        <div class="p-5 border-b border-dark-border">
+            <h3 class="font-bold text-text-main">Sécurité</h3>
+            <p class="text-sm text-text-muted mt-1">Options de sécurité du compte</p>
+        </div>
+        <div class="p-5 space-y-6">
+            <!-- 2FA -->
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="font-medium text-text-main">Authentification à Deux Facteurs</p>
+                    <p class="text-sm text-text-muted">Exiger 2FA pour tous les admins</p>
+                </div>
+                <label class="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" class="sr-only peer">
+                    <div class="w-11 h-6 bg-dark-surface3 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-accent-primary"></div>
+                </label>
+            </div>
+            
+            <!-- Session Timeout -->
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="font-medium text-text-main">Délai d'Expiration de Session</p>
+                    <p class="text-sm text-text-muted">Temps d'inactivité avant déconnexion</p>
+                </div>
+                <select class="input-dark w-64 px-4 py-2 rounded-lg">
+                    <option>15 minutes</option>
+                    <option>30 minutes</option>
+                    <option selected>1 heure</option>
+                    <option>4 heures</option>
+                </select>
+            </div>
+            
+            <!-- Password Requirements -->
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="font-medium text-text-main">Exigences de Mot de Passe</p>
+                    <p class="text-sm text-text-muted">Longueur et complexité minimales</p>
+                </div>
+                <select class="input-dark w-64 px-4 py-2 rounded-lg">
+                    <option>8 caractères minimum</option>
+                    <option selected>12 caractères minimum</option>
+                    <option>16 caractères minimum</option>
+                </select>
+            </div>
+        </div>
+        <div class="p-5 border-t border-dark-border flex justify-end">
+            <button class="btn-primary">Enregistrer</button>
+        </div>
+    </div>
+
+    <!-- Notifications -->
+    <div class="card-dark" id="notifications">
+        <div class="p-5 border-b border-dark-border">
+            <h3 class="font-bold text-text-main">Notifications</h3>
+            <p class="text-sm text-text-muted mt-1">Préférences de notifications</p>
+        </div>
+        <div class="p-5 space-y-6">
+            <!-- Email Notifications -->
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="font-medium text-text-main">Notifications par Email</p>
+                    <p class="text-sm text-text-muted">Recevoir les alertes par email</p>
+                </div>
+                <label class="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" class="sr-only peer" checked>
+                    <div class="w-11 h-6 bg-dark-surface3 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-accent-primary"></div>
+                </label>
+            </div>
+            
+            <!-- Low Balance Alert -->
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="font-medium text-text-main">Alerte Solde Faible</p>
+                    <p class="text-sm text-text-muted">Notifier quand une caisse est faible</p>
+                </div>
+                <label class="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" class="sr-only peer" checked>
+                    <div class="w-11 h-6 bg-dark-surface3 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-accent-primary"></div>
+                </label>
+            </div>
+            
+            <!-- Daily Report -->
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="font-medium text-text-main">Rapport Journalier Automatique</p>
+                    <p class="text-sm text-text-muted">Envoyer le rapport chaque jour</p>
+                </div>
+                <label class="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" class="sr-only peer">
+                    <div class="w-11 h-6 bg-dark-surface3 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-accent-primary"></div>
+                </label>
+            </div>
+        </div>
+        <div class="p-5 border-t border-dark-border flex justify-end">
+            <button type="submit" class="btn-primary">Enregistrer</button>
+        </div>
+    </div>
+    </form>
+</div>
+
+<script>
+document.getElementById('settings-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    // Collect form data
+    const formData = new FormData(this);
+    const data = Object.fromEntries(formData.entries());
+    
+    // Show loading state
+    const submitBtn = this.querySelector('button[type="submit"]');
+    const originalText = submitBtn.textContent;
+    submitBtn.textContent = 'Enregistrement...';
+    submitBtn.disabled = true;
+    
+    // Simulate saving (in a real app, this would be an API call)
+    setTimeout(() => {
+        // Show success message
+        showToast('Paramètres enregistrés avec succès!', 'success');
+        
+        // Reset button
+        submitBtn.textContent = originalText;
+        submitBtn.disabled = false;
+        
+        // Store in localStorage for persistence
+        localStorage.setItem('app_settings', JSON.stringify(data));
+    }, 1000);
+});
+
+// Load saved settings on page load
+document.addEventListener('DOMContentLoaded', function() {
+    const savedSettings = localStorage.getItem('app_settings');
+    if (savedSettings) {
+        const data = JSON.parse(savedSettings);
+        Object.keys(data).forEach(key => {
+            const element = document.querySelector(`[name="${key}"]`);
+            if (element) {
+                element.value = data[key];
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

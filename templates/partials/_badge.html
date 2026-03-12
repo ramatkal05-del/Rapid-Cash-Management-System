@@ -1,0 +1,17 @@
+{# partials/_badge.html #}
+{# Reusable Badge Component #}
+{# Usage: {% include 'partials/_badge.html' with text="Active" type="success" %} #}
+
+{% if type == 'success' %}
+<span class="badge badge-success">{{ text }}</span>
+{% elif type == 'danger' or type == 'error' %}
+<span class="badge badge-danger">{{ text }}</span>
+{% elif type == 'warning' %}
+<span class="badge badge-warning">{{ text }}</span>
+{% elif type == 'info' %}
+<span class="badge badge-info">{{ text }}</span>
+{% elif type == 'purple' %}
+<span class="badge badge-purple">{{ text }}</span>
+{% else %}
+<span class="badge badge-info">{{ text }}</span>
+{% endif %}

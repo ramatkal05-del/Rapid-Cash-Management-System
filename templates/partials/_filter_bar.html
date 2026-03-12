@@ -1,0 +1,97 @@
+{# partials/_filter_bar.html #}
+{# Reusable Filter Bar Component #}
+{# Usage: Include with form parameters #}
+
+<div class="card-dark mb-6">
+    <div class="p-5">
+        <form method="GET" class="flex flex-wrap gap-4 items-end" 
+              {% if hx_get %}hx-get="{{ hx_get }}" hx-target="{{ hx_target|default:'#content' }}" hx-trigger="submit"{% endif %}>
+            
+            {% if show_type %}
+            <div class="flex-1 min-w-[160px]">
+                <label class="block text-xs font-medium text-text-muted uppercase tracking-wide mb-2">Type</label>
+                <select name="type" class="input-dark w-full px-3 py-2.5 rounded-lg text-sm">
+                    <option value="">Tous les types</option>
+                    {% if type_options %}
+                        {% for value, label in type_options %}
+                        <option value="{{ value }}" {% if selected_type == value %}selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
+                    {% else %}
+                        <option value="TRANSFER" {% if selected_type == 'TRANSFER' %}selected{% endif %}>Transfert</option>
+                        <option value="WITHDRAWAL" {% if selected_type == 'WITHDRAWAL' %}selected{% endif %}>Retrait</option>
+                    {% endif %}
+                </select>
+            </div>
+            {% endif %}
+            
+            {% if show_agent and agents %}
+            <div class="flex-1 min-w-[160px]">
+                <label class="block text-xs font-medium text-text-muted uppercase tracking-wide mb-2">Agent</label>
+                <select name="agent" class="input-dark w-full px-3 py-2.5 rounded-lg text-sm">
+                    <option value="">Tous les agents</option>
+                    {% for agent in agents %}
+                    <option value="{{ agent.id }}" {% if selected_agent == agent.id|stringformat:"s" %}selected{% endif %}>{{ agent.username }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            {% endif %}
+            
+            {% if show_status %}
+            <div class="flex-1 min-w-[160px]">
+                <label class="block text-xs font-medium text-text-muted uppercase tracking-wide mb-2">Statut</label>
+                <select name="status" class="input-dark w-full px-3 py-2.5 rounded-lg text-sm">
+                    <option value="">Tous les statuts</option>
+                    <option value="COMPLETED" {% if selected_status == 'COMPLETED' %}selected{% endif %}>Complété</option>
+                    <option value="PENDING" {% if selected_status == 'PENDING' %}selected{% endif %}>En attente</option>
+                    <option value="CANCELLED" {% if selected_status == 'CANCELLED' %}selected{% endif %}>Annulé</option>
+                </select>
+            </div>
+            {% endif %}
+            
+            {% if show_category and categories %}
+            <div class="flex-1 min-w-[160px]">
+                <label class="block text-xs font-medium text-text-muted uppercase tracking-wide mb-2">Catégorie</label>
+                <select name="category" class="input-dark w-full px-3 py-2.5 rounded-lg text-sm">
+                    <option value="">Toutes les catégories</option>
+                    {% for cat in categories %}
+                    <option value="{{ cat }}" {% if selected_category == cat %}selected{% endif %}>{{ cat }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            {% endif %}
+            
+            {% if show_date %}
+            <div class="flex-1 min-w-[140px]">
+                <label class="block text-xs font-medium text-text-muted uppercase tracking-wide mb-2">Du</label>
+                <input type="date" name="date_from" value="{{ selected_date_from }}" class="input-dark w-full px-3 py-2.5 rounded-lg text-sm">
+            </div>
+            
+            <div class="flex-1 min-w-[140px]">
+                <label class="block text-xs font-medium text-text-muted uppercase tracking-wide mb-2">Au</label>
+                <input type="date" name="date_to" value="{{ selected_date_to }}" class="input-dark w-full px-3 py-2.5 rounded-lg text-sm">
+            </div>
+            {% endif %}
+            
+            {% if show_search %}
+            <div class="flex-1 min-w-[180px]">
+                <label class="block text-xs font-medium text-text-muted uppercase tracking-wide mb-2">Recherche</label>
+                <input type="text" name="q" value="{{ search_query|default:'' }}" 
+                       placeholder="Rechercher..." 
+                       class="input-dark w-full px-3 py-2.5 rounded-lg text-sm">
+            </div>
+            {% endif %}
+            
+            <div class="flex gap-2">
+                <button type="submit" class="btn-primary text-sm px-4 py-2.5">
+                    <svg class="w-4 h-4 mr-1.5 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/>
+                    </svg>
+                    Filtrer
+                </button>
+                {% if show_reset %}
+                <a href="{{ reset_url }}" class="btn-secondary text-sm px-4 py-2.5">Reset</a>
+                {% endif %}
+            </div>
+        </form>
+    </div>
+</div>

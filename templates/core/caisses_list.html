@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+
+{% block title %}Monitoring des Caisses - Rapid Cash{% endblock %}
+
+{% block page_title %}Liquidités Opérationnelles{% endblock %}
+{% block page_subtitle %}Surveillance en temps réel des flux de trésorerie{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Header -->
+    <div class="flex justify-between items-end">
+        <div>
+            <p class="text-text-muted text-sm">
+                {% if total_balance %}
+                Total: <span class="font-mono font-bold text-accent-success">{{ total_balance|floatformat:2 }}</span> {{ base_currency }}
+                {% endif %}
+            </p>
+        </div>
+        {% if user.role == 'ADMIN' %}
+        <a href="/admin/operations/caisse/add/" class="btn-primary text-sm">
+            <svg class="w-4 h-4 mr-1.5 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+            </svg>
+            Nouvelle Caisse
+        </a>
+        {% endif %}
+    </div>
+
+    <!-- Grid of Caisses -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {% for caisse in caisses %}
+        <div class="card-dark p-5 card-dark-hover group">
+            <div class="flex items-start justify-between mb-5">
+                <div class="w-12 h-12 rounded-xl bg-accent-warning/10 flex items-center justify-center">
+                    <svg class="w-6 h-6 text-accent-warning" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
+                    </svg>
+                </div>
+                <span class="badge badge-info">{{ caisse.currency.code }}</span>
+            </div>
+            
+            <div class="mb-4">
+                <p class="text-text-muted text-xs font-medium uppercase tracking-wide mb-1">Solde Disponible</p>
+                <p class="text-2xl font-bold text-text-main font-mono tracking-tight">
+                    {{ caisse.balance|floatformat:2 }}
+                </p>
+            </div>
+            
+            <div class="space-y-2 mb-5">
+                <div class="flex justify-between items-center py-1.5 border-b border-dark-border">
+                    <span class="text-xs text-text-muted">Caisse</span>
+                    <span class="text-sm font-medium text-text-main">{{ caisse.name }}</span>
+                </div>
+                <div class="flex justify-between items-center py-1.5">
+                    <span class="text-xs text-text-muted">Responsable</span>
+                    <div class="flex items-center gap-2">
+                        {% if caisse.agent %}
+                        <div class="w-6 h-6 rounded-full bg-accent-purple/20 flex items-center justify-center text-accent-purple text-xs font-medium">
+                            {{ caisse.agent.username|first|upper }}
+                        </div>
+                        <span class="text-sm font-medium text-text-main">{{ caisse.agent.username }}</span>
+                        {% else %}
+                        <span class="text-sm text-text-muted">Non assigné</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <div class="flex gap-2">
+                {% if user.role == 'ADMIN' %}
+                <a href="/admin/operations/caisse/{{ caisse.id }}/change/"
+                   class="flex-1 text-center py-2.5 rounded-lg bg-dark-surface2 hover:bg-dark-surface3 text-text-secondary text-sm font-medium transition-colors">
+                    Ajuster
+                </a>
+                {% endif %}
+                <a href="{% url 'operation_list' %}?caisse={{ caisse.id }}"
+                   class="flex-1 text-center py-2.5 rounded-lg bg-accent-primary/10 hover:bg-accent-primary/20 text-accent-primary text-sm font-medium transition-colors">
+                    Journal
+                </a>
+            </div>
+        </div>
+        {% empty %}
+        {% include 'partials/_empty_state.html' with icon='wallet' title='Aucune caisse' message='Créez votre première caisse pour commencer' action_url="/admin/operations/caisse/add/" action_text="Nouvelle Caisse" %}
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,204 @@
+{% extends 'base.html' %}
+
+{% block title %}Tableau de bord - Rapid Cash{% endblock %}
+
+{% block page_title %}Tableau de bord{% endblock %}
+{% block page_subtitle %}Vue d'ensemble de vos opérations{% endblock %}
+
+{% block content %}
+<!-- KPI Cards -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+    <!-- Total Transactions -->
+    <div class="card-dark p-6 card-dark-hover">
+        <div class="flex items-start justify-between mb-4">
+            <div class="w-12 h-12 rounded-xl bg-accent-primary/10 flex items-center justify-center">
+                <svg class="w-6 h-6 text-accent-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>
+                </svg>
+            </div>
+        </div>
+        <p class="text-text-muted text-sm">Total Transactions</p>
+        <p class="text-3xl font-bold text-text-main mt-1">{{ total_operations|default:0 }}</p>
+        <p class="text-text-muted text-xs mt-2">Ce mois-ci</p>
+    </div>
+    
+    <!-- Collected Fees -->
+    <div class="card-dark p-6 card-dark-hover">
+        <div class="flex items-start justify-between mb-4">
+            <div class="w-12 h-12 rounded-xl bg-accent-success/10 flex items-center justify-center">
+                <svg class="w-6 h-6 text-accent-success" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+            </div>
+        </div>
+        <p class="text-text-muted text-sm">Frais Collectés</p>
+        <p class="text-3xl font-bold text-accent-success mt-1">${{ total_fees|floatformat:2|default:"0.00" }}</p>
+        <p class="text-text-muted text-xs mt-2">Revenus ce mois</p>
+    </div>
+    
+    <!-- Total Expenses - Admin only -->
+    {% if user.role == 'ADMIN' %}
+    <div class="card-dark p-6 card-dark-hover">
+        <div class="flex items-start justify-between mb-4">
+            <div class="w-12 h-12 rounded-xl bg-accent-danger/10 flex items-center justify-center">
+                <svg class="w-6 h-6 text-accent-danger" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2z"/>
+                </svg>
+            </div>
+        </div>
+        <p class="text-text-muted text-sm">Total Dépenses</p>
+        <p class="text-3xl font-bold text-accent-danger mt-1">${{ total_expenses|floatformat:2|default:"0.00" }}</p>
+        <p class="text-text-muted text-xs mt-2">Coûts opérationnels</p>
+    </div>
+    
+    <!-- Net Profit - Admin only -->
+    <div class="card-dark p-6 card-dark-hover">
+        <div class="flex items-start justify-between mb-4">
+            <div class="w-12 h-12 rounded-xl bg-accent-purple/10 flex items-center justify-center">
+                <svg class="w-6 h-6 text-accent-purple" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
+                </svg>
+            </div>
+        </div>
+        <p class="text-text-muted text-sm">Bénéfice Net</p>
+        <p class="text-3xl font-bold text-accent-purple mt-1">${{ net_profit|floatformat:2|default:"0.00" }}</p>
+        <p class="text-text-muted text-xs mt-2">Frais - Dépenses - Commissions</p>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Main Content Grid -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <!-- Recent Operations -->
+    <div class="lg:col-span-2 card-dark">
+        <div class="flex items-center justify-between p-6 border-b border-dark-border">
+            <h3 class="font-bold text-text-main">Opérations Récentes</h3>
+            <a href="{% url 'operation_list' %}" class="text-sm text-accent-primary hover:underline">Voir tout</a>
+        </div>
+        <div class="p-6">
+            {% if recent_operations %}
+            <div class="overflow-x-auto">
+                <table class="table-dark">
+                    <thead>
+                        <tr>
+                            <th>Transaction</th>
+                            <th>Type</th>
+                            <th>Montant</th>
+                            <th>Frais</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for op in recent_operations %}
+                        <tr>
+                            <td>
+                                <span class="font-mono text-accent-primary">{{ op.transaction_number }}</span>
+                            </td>
+                            <td>
+                                <span class="badge {% if op.type == 'TRANSFER' %}badge-info{% else %}badge-warning{% endif %}">
+                                    {% if op.type == 'TRANSFER' %}Transfert{% else %}Retrait{% endif %}
+                                </span>
+                            </td>
+                            <td class="font-medium">{{ op.amount_orig|floatformat:2 }} {{ op.currency_orig.symbol }}</td>
+                            <td class="text-accent-success">${{ op.fee_calculated|floatformat:2 }}</td>
+                            <td>
+                                <span class="badge badge-success">{{ op.status }}</span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center py-8">
+                <svg class="w-12 h-12 text-text-muted mx-auto mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                </svg>
+                <p class="text-text-muted">Aucune opération récente</p>
+                <a href="{% url 'create_operation' %}" class="btn-primary inline-block mt-4">Créer une opération</a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Cash Boxes -->
+    <div class="card-dark">
+        <div class="flex items-center justify-between p-6 border-b border-dark-border">
+            <h3 class="font-bold text-text-main">Caisses</h3>
+            {% if user.role == 'ADMIN' %}
+            <a href="{% url 'core:caisses_list' %}" class="text-sm text-accent-primary hover:underline">Gérer</a>
+            {% endif %}
+        </div>
+        <div class="p-6 space-y-4">
+            {% for caisse in caisses %}
+            <div class="flex items-center justify-between p-4 rounded-lg bg-dark-surface2">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-lg bg-dark-surface3 flex items-center justify-center">
+                        <svg class="w-5 h-5 text-accent-warning" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <p class="font-medium text-text-main">{{ caisse.name }}</p>
+                        <p class="text-xs text-text-muted">{{ caisse.agent.username }}</p>
+                    </div>
+                </div>
+                <div class="text-right">
+                    <p class="font-bold text-accent-success">{{ caisse.balance|floatformat:2 }}</p>
+                    <p class="text-xs text-text-muted">{{ caisse.currency.code }}</p>
+                </div>
+            </div>
+            {% empty %}
+            <p class="text-text-muted text-center py-4">Aucune caisse disponible</p>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
+    <a href="{% url 'create_operation' %}" class="card-dark p-6 card-dark-hover group">
+        <div class="flex items-center gap-4">
+            <div class="w-12 h-12 rounded-xl bg-accent-primary/10 flex items-center justify-center group-hover:scale-110 transition-transform">
+                <svg class="w-6 h-6 text-accent-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                </svg>
+            </div>
+            <div>
+                <p class="font-semibold text-text-main">Nouvelle Opération</p>
+                <p class="text-sm text-text-muted">Créer une transaction</p>
+            </div>
+        </div>
+    </a>
+    
+    {% if user.role == 'ADMIN' %}
+    <a href="{% url 'expense_list' %}" class="card-dark p-6 card-dark-hover group">
+        <div class="flex items-center gap-4">
+            <div class="w-12 h-12 rounded-xl bg-accent-danger/10 flex items-center justify-center group-hover:scale-110 transition-transform">
+                <svg class="w-6 h-6 text-accent-danger" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2z"/>
+                </svg>
+            </div>
+            <div>
+                <p class="font-semibold text-text-main">Dépenses</p>
+                <p class="text-sm text-text-muted">Gérer les dépenses</p>
+            </div>
+        </div>
+    </a>
+    
+    <a href="{% url 'export_daily_report_pdf' %}" class="card-dark p-6 card-dark-hover group">
+        <div class="flex items-center gap-4">
+            <div class="w-12 h-12 rounded-xl bg-accent-purple/10 flex items-center justify-center group-hover:scale-110 transition-transform">
+                <svg class="w-6 h-6 text-accent-purple" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                </svg>
+            </div>
+            <div>
+                <p class="font-semibold text-text-main">Rapport</p>
+                <p class="text-sm text-text-muted">Télécharger PDF</p>
+            </div>
+        </div>
+    </a>
+    {% endif %}
+</div>
+{% endblock %}

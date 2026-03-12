@@ -1,0 +1,458 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Nouvelle Opération - Rapid Cash{% endblock %}
+
+{% block page_title %}Nouvelle Opération{% endblock %}
+{% block page_subtitle %}Effectuer une transaction{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto space-y-6">
+    <!-- Agent Caisse Info -->
+    {% if agent_caisse %}
+    <div class="card-dark">
+        <div class="p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h3 class="text-lg font-bold text-text-main">Votre Caisse Assignée</h3>
+                    <p class="text-sm text-text-muted mt-1">Toutes les opérations utiliseront cette caisse</p>
+                </div>
+                <div class="text-right">
+                    <div class="text-sm text-text-muted">Solde disponible</div>
+                    <div class="text-2xl font-bold text-accent-success">{{ agent_caisse.balance|floatformat:2 }} {{ agent_caisse.currency.code }}</div>
+                </div>
+            </div>
+            <div class="mt-4 p-4 rounded-lg bg-dark-surface2 border border-dark-border">
+                <div class="flex items-center gap-4">
+                    <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center">
+                        <svg class="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <h4 class="font-semibold text-text-main">{{ agent_caisse.name }}</h4>
+                        <p class="text-sm text-text-muted">Devise: {{ agent_caisse.currency.code }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="card-dark border-l-4 border-accent-danger">
+        <div class="p-6">
+            <div class="flex items-center gap-4">
+                <div class="w-12 h-12 rounded-xl bg-accent-danger/20 flex items-center justify-center">
+                    <svg class="w-6 h-6 text-accent-danger" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                </div>
+                <div>
+                    <h3 class="text-lg font-bold text-text-main">Aucune Caisse Assignée</h3>
+                    <p class="text-sm text-text-muted">Veuillez contacter l'administrateur pour qu'une caisse vous soit assignée.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Workflow Progress -->
+    <div class="card-dark">
+        <div class="p-6">
+            <div class="flex items-center justify-between">
+                <div class="flex flex-col items-center">
+                    <div class="w-10 h-10 rounded-full bg-accent-primary text-white flex items-center justify-center font-bold shadow-lg" id="step1">1</div>
+                    <span class="text-xs font-medium mt-2 text-accent-primary">Type</span>
+                </div>
+                <div class="flex-1 h-1 bg-dark-border mx-2 rounded"><div class="h-full bg-accent-primary rounded transition-all duration-300" id="conn1" style="width:0%"></div></div>
+                <div class="flex flex-col items-center">
+                    <div class="w-10 h-10 rounded-full bg-dark-surface3 text-text-muted flex items-center justify-center font-bold" id="step2">2</div>
+                    <span class="text-xs font-medium mt-2 text-text-muted">Montant</span>
+                </div>
+                <div class="flex-1 h-1 bg-dark-border mx-2 rounded"><div class="h-full bg-accent-primary rounded transition-all duration-300" id="conn2" style="width:0%"></div></div>
+                <div class="flex flex-col items-center">
+                    <div class="w-10 h-10 rounded-full bg-dark-surface3 text-text-muted flex items-center justify-center font-bold" id="step3">3</div>
+                    <span class="text-xs font-medium mt-2 text-text-muted">Vérif.</span>
+                </div>
+                <div class="flex-1 h-1 bg-dark-border mx-2 rounded"><div class="h-full bg-accent-primary rounded transition-all duration-300" id="conn3" style="width:0%"></div></div>
+                <div class="flex flex-col items-center">
+                    <div class="w-10 h-10 rounded-full bg-dark-surface3 text-text-muted flex items-center justify-center font-bold" id="step4">✓</div>
+                    <span class="text-xs font-medium mt-2 text-text-muted">Confirme</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Form -->
+    {% if agent_caisse %}
+    <form method="POST" id="opform" class="card-dark">
+        {% csrf_token %}
+
+        <!-- Messages -->
+        {% if messages %}
+        <div class="p-6 border-b border-dark-border">
+            {% for message in messages %}
+            <div class="p-4 rounded-xl text-sm font-medium {% if message.tags == 'error' %}text-accent-danger bg-accent-danger/10 border border-accent-danger/20{% else %}text-accent-success bg-accent-success/10 border border-accent-success/20{% endif %}">
+                {{ message }}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <div class="p-8 space-y-8">
+            <!-- Step 1: Operation Type -->
+            <div id="step1-content">
+                <div class="mb-6">
+                    <h3 class="text-lg font-bold text-text-main mb-2">Type d'Opération</h3>
+                    <p class="text-sm text-text-muted">Sélectionnez le type de transaction à effectuer</p>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <label class="relative cursor-pointer">
+                        <input type="radio" name="type" value="TRANSFER" class="peer sr-only" {% if form.type.value == 'TRANSFER' %}checked{% endif %}>
+                        <div class="p-6 border-2 rounded-xl transition-all peer-checked:border-accent-primary peer-checked:bg-accent-primary/5 border-dark-border hover:border-accent-primary/50">
+                            <div class="flex items-center gap-4">
+                                <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center">
+                                    <svg class="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <h4 class="font-semibold text-text-main">Transfert</h4>
+                                    <p class="text-sm text-text-muted">Transférer des fonds</p>
+                                </div>
+                            </div>
+                        </div>
+                    </label>
+                    
+                    <label class="relative cursor-pointer">
+                        <input type="radio" name="type" value="WITHDRAWAL" class="peer sr-only" {% if form.type.value == 'WITHDRAWAL' %}checked{% endif %}>
+                        <div class="p-6 border-2 rounded-xl transition-all peer-checked:border-accent-primary peer-checked:bg-accent-primary/5 border-dark-border hover:border-accent-primary/50">
+                            <div class="flex items-center gap-4">
+                                <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center">
+                                    <svg class="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <h4 class="font-semibold text-text-main">Retrait</h4>
+                                    <p class="text-sm text-text-muted">Retirer des fonds</p>
+                                </div>
+                            </div>
+                        </div>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Step 2: Amount and Currency -->
+            <div id="step2-content" class="space-y-6">
+                <div>
+                    <h3 class="text-lg font-bold text-text-main mb-2">Montant et Devise</h3>
+                    <p class="text-sm text-text-muted">Entrez le montant et sélectionnez la devise</p>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label for="{{ form.amount_orig.id_for_label }}" class="block text-sm font-medium text-text-main mb-2">
+                            {{ form.amount_orig.label }} *
+                        </label>
+                        {{ form.amount_orig }}
+                        {% if form.amount_orig.errors %}
+                        <div class="text-accent-danger text-sm mt-1">
+                            {{ form.amount_orig.errors.0 }}
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div>
+                        <label for="{{ form.currency_orig.id_for_label }}" class="block text-sm font-medium text-text-main mb-2">
+                            {{ form.currency_orig.label }} *
+                        </label>
+                        {{ form.currency_orig }}
+                        {% if form.currency_orig.errors %}
+                        <div class="text-accent-danger text-sm mt-1">
+                            {{ form.currency_orig.errors.0 }}
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 3: Balance Verification -->
+            <div id="step3-content" class="space-y-6">
+                <div>
+                    <h3 class="text-lg font-bold text-text-main mb-2">Vérification du Solde</h3>
+                    <p class="text-sm text-text-muted">Vérification automatique des fonds disponibles</p>
+                </div>
+                
+                <!-- Balance Info -->
+                <div id="balance-info" class="p-4 rounded-lg bg-dark-surface2 border border-dark-border hidden">
+                    <div class="flex items-center justify-between">
+                        <span class="text-sm text-text-muted">Solde disponible:</span>
+                        <span id="balance-amount" class="font-bold text-lg text-text-main">{{ agent_caisse.balance|floatformat:2 }} {{ agent_caisse.currency.code }}</span>
+                    </div>
+                    <div id="fee-info" class="mt-2 pt-2 border-t border-dark-border hidden">
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm text-text-muted">Frais:</span>
+                            <span id="fee-amount" class="font-medium text-accent-warning">0.00</span>
+                        </div>
+                        <div class="flex items-center justify-between mt-1">
+                            <span class="text-sm text-text-muted">Total requis:</span>
+                            <span id="total-amount" class="font-bold text-lg text-accent-danger">0.00</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 4: Observation and Confirmation -->
+            <div id="step4-content" class="space-y-6">
+                <div>
+                    <h3 class="text-lg font-bold text-text-main mb-2">Finalisation</h3>
+                    <p class="text-sm text-text-muted">Ajoutez un commentaire et confirmez l'opération</p>
+                </div>
+                
+                <div>
+                    <label for="{{ form.observation.id_for_label }}" class="block text-sm font-medium text-text-main mb-2">
+                        {{ form.observation.label }}
+                    </label>
+                    {{ form.observation }}
+                    {% if form.observation.errors %}
+                    <div class="text-accent-danger text-sm mt-1">
+                        {{ form.observation.errors.0 }}
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <!-- Summary -->
+                <div id="operation-summary" class="p-6 rounded-xl bg-dark-surface2 border border-dark-border hidden">
+                    <h4 class="font-semibold text-text-main mb-4">Résumé de l'Opération</h4>
+                    <div class="space-y-2 text-sm">
+                        <div class="flex justify-between">
+                            <span class="text-text-muted">Type:</span>
+                            <span id="summary-type" class="font-medium text-text-main">-</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-text-muted">Montant:</span>
+                            <span id="summary-amount" class="font-medium text-text-main">-</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-text-muted">Caisse:</span>
+                            <span id="summary-caisse" class="font-medium text-text-main">{{ agent_caisse.name }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-text-muted">Frais:</span>
+                            <span id="summary-fee" class="font-medium text-accent-warning">-</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Submit Button -->
+            <div class="flex justify-end gap-4 pt-6 border-t border-dark-border">
+                <a href="{% url 'dashboard' %}" class="btn-secondary">Annuler</a>
+                <button type="submit" class="btn-primary" id="submit-btn">
+                    <svg class="w-4 h-4 mr-2 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                    </svg>
+                    Confirmer l'Opération
+                </button>
+            </div>
+        </div>
+    </form>
+    {% endif %}
+</div>
+
+<script>
+// Agent caisse data
+const agentCaisse = {
+    'name': '{{ agent_caisse.name|default:"" }}',
+    'balance': {{ agent_caisse.balance|default:"0" }},
+    'currency': '{{ agent_caisse.currency.code|default:"" }}'
+};
+
+// Fee grid data
+const feeData = {
+    {% for grid in fee_grids %}
+    '{{ grid.min_amount }}_{{ grid.max_amount }}': {{ grid.fee_amount|default:"0" }},
+    {% endfor %}
+};
+
+function updateWorkflowStep(step) {
+    // Reset all steps
+    for (let i = 1; i <= 4; i++) {
+        const stepEl = document.getElementById(`step${i}`);
+        const connEl = document.getElementById(`conn${i}`);
+        
+        if (i < step) {
+            stepEl.className = 'w-10 h-10 rounded-full bg-accent-success text-white flex items-center justify-center font-bold shadow-lg';
+            stepEl.innerHTML = '✓';
+            if (connEl) connEl.style.width = '100%';
+        } else if (i === step) {
+            stepEl.className = 'w-10 h-10 rounded-full bg-accent-primary text-white flex items-center justify-center font-bold shadow-lg';
+            stepEl.innerHTML = i;
+            if (connEl) connEl.style.width = '50%';
+        } else {
+            stepEl.className = 'w-10 h-10 rounded-full bg-dark-surface3 text-text-muted flex items-center justify-center font-bold';
+            stepEl.innerHTML = i;
+            if (connEl) connEl.style.width = '0%';
+        }
+    }
+}
+
+function calculateFee(amount) {
+    for (const [range, fee] of Object.entries(feeData)) {
+        const [min, max] = range.split('_').map(Number);
+        if (amount >= min && (max === 0 || amount <= max)) {
+            return fee;
+        }
+    }
+    return 0;
+}
+
+function updateBalanceInfo() {
+    const amount = parseFloat(document.querySelector('[name="amount_orig"]').value) || 0;
+    const opType = document.querySelector('[name="type"]:checked')?.value;
+    
+    if (agentCaisse.name && amount > 0) {
+        const balanceInfo = document.getElementById('balance-info');
+        const balanceAmount = document.getElementById('balance-amount');
+        const feeInfo = document.getElementById('fee-info');
+        const feeAmount = document.getElementById('fee-amount');
+        const totalAmount = document.getElementById('total-amount');
+        const balanceAfter = document.getElementById('balance-after');
+        
+        const fee = calculateFee(amount);
+        
+        balanceAmount.textContent = `${agentCaisse.balance.toFixed(2)} ${agentCaisse.currency}`;
+        
+        if (opType === 'WITHDRAWAL') {
+            // RETRAIT: L'agent donne de l'argent au client (solde diminue)
+            const total = amount + fee;
+            const newBalance = agentCaisse.balance - total;
+            
+            feeAmount.textContent = `${fee.toFixed(2)} ${agentCaisse.currency}`;
+            totalAmount.textContent = `-${total.toFixed(2)} ${agentCaisse.currency}`;
+            totalAmount.className = 'font-bold text-lg text-accent-danger';
+            if (balanceAfter) {
+                balanceAfter.textContent = `Nouveau solde: ${newBalance.toFixed(2)} ${agentCaisse.currency}`;
+            }
+            feeInfo.classList.remove('hidden');
+            
+            // Vérifier si solde suffisant
+            if (total > agentCaisse.balance) {
+                balanceInfo.className = 'p-4 rounded-lg bg-accent-danger/10 border border-accent-danger/20';
+                balanceAmount.className = 'font-bold text-lg text-accent-danger';
+            } else {
+                balanceInfo.className = 'p-4 rounded-lg bg-accent-success/10 border border-accent-success/20';
+                balanceAmount.className = 'font-bold text-lg text-accent-success';
+            }
+        } else if (opType === 'TRANSFER') {
+            // TRANSFERT: L'agent reçoit l'argent du client + frais (solde augmente)
+            const received = amount + fee;
+            const newBalance = agentCaisse.balance + received;
+            
+            feeAmount.textContent = `${fee.toFixed(2)} ${agentCaisse.currency}`;
+            totalAmount.textContent = `+${received.toFixed(2)} ${agentCaisse.currency}`;
+            totalAmount.className = 'font-bold text-lg text-accent-success';
+            if (balanceAfter) {
+                balanceAfter.textContent = `Nouveau solde: ${newBalance.toFixed(2)} ${agentCaisse.currency}`;
+            }
+            feeInfo.classList.remove('hidden');
+            
+            // Pas de vérification de solde pour les transferts (l'agent reçoit de l'argent)
+            balanceInfo.className = 'p-4 rounded-lg bg-accent-success/10 border border-accent-success/20';
+            balanceAmount.className = 'font-bold text-lg text-accent-success';
+        }
+        
+        balanceInfo.classList.remove('hidden');
+        updateSummary();
+    }
+}
+
+function validateBalance() {
+    const amount = parseFloat(document.querySelector('[name="amount_orig"]').value) || 0;
+    const opType = document.querySelector('[name="type"]:checked')?.value;
+    
+    if (!agentCaisse.name || amount <= 0) {
+        return true; // No validation needed
+    }
+    
+    let requiredAmount = amount;
+    if (opType === 'WITHDRAWAL') {
+        const fee = calculateFee(amount);
+        requiredAmount = amount + fee;
+    }
+    
+    if (requiredAmount > agentCaisse.balance) {
+        return false; // Insufficient balance
+    }
+    
+    return true; // Sufficient balance
+}
+
+function updateSummary() {
+    const type = document.querySelector('[name="type"]:checked')?.value;
+    const amount = document.querySelector('[name="amount_orig"]').value;
+    
+    if (type && amount && agentCaisse.name) {
+        document.getElementById('operation-summary').classList.remove('hidden');
+        document.getElementById('summary-type').textContent = type === 'TRANSFER' ? 'Transfert' : 'Retrait';
+        document.getElementById('summary-amount').textContent = `${amount} ${agentCaisse.currency}`;
+        
+        if (type === 'WITHDRAWAL') {
+            const fee = calculateFee(parseFloat(amount));
+            document.getElementById('summary-fee').textContent = `${fee.toFixed(2)} ${agentCaisse.currency}`;
+        } else {
+            document.getElementById('summary-fee').textContent = '0.00';
+        }
+    }
+}
+
+// Event listeners
+document.addEventListener('DOMContentLoaded', function() {
+    // Update workflow on input
+    document.querySelector('[name="type"]')?.addEventListener('change', function() {
+        updateWorkflowStep(2);
+        updateBalanceInfo();
+    });
+    
+    document.querySelector('[name="amount_orig"]')?.addEventListener('input', function() {
+        updateWorkflowStep(2);
+        updateBalanceInfo();
+    });
+    
+    document.querySelector('[name="currency_orig"]')?.addEventListener('change', function() {
+        updateWorkflowStep(2);
+        updateBalanceInfo();
+    });
+    
+    document.querySelector('[name="observation"]')?.addEventListener('input', function() {
+        updateWorkflowStep(4);
+    });
+    
+    // Initialize
+    updateWorkflowStep(1);
+});
+</script>
+
+<style>
+.input-dark {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    background: #1a1b2e;
+    border: 1px solid #252640;
+    border-radius: 0.5rem;
+    color: #e8eaf6;
+    transition: all 0.2s ease;
+}
+
+.input-dark:focus {
+    outline: none;
+    border-color: #4f8ef7;
+    box-shadow: 0 0 0 3px rgba(79, 142, 247, 0.1);
+}
+
+.input-dark::placeholder {
+    color: #64748b;
+}
+</style>
+{% endblock %}

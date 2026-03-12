@@ -1,0 +1,227 @@
+{% extends 'base.html' %}
+
+{% block title %}Gestion des Associés - Rapid Cash{% endblock %}
+
+{% block page_title %}Associés{% endblock %}
+{% block page_subtitle %}Contrats et partenariats{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Stats Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="card-dark p-5">
+            <p class="text-text-muted text-sm font-medium">Total Associés</p>
+            <p class="text-2xl font-bold text-text-main mt-1">{{ associates|length }}</p>
+        </div>
+        <div class="card-dark p-5">
+            <p class="text-text-muted text-sm font-medium">Montant Engagé</p>
+            <p class="text-2xl font-bold text-accent-success mt-1 font-mono">
+                ${{ total_engaged|default:"0.00" }}
+            </p>
+        </div>
+        <div class="card-dark p-5">
+            <p class="text-text-muted text-sm font-medium">Retours Attendus</p>
+            <p class="text-2xl font-bold text-accent-warning mt-1 font-mono">
+                {{ total_expected_return|default:"0" }}%
+            </p>
+        </div>
+    </div>
+
+    <!-- Associates Table -->
+    <div class="card-dark">
+        <div class="flex items-center justify-between p-5 border-b border-dark-border">
+            <h3 class="font-bold text-text-main">Liste des Associés</h3>
+            {% if user.role == 'ADMIN' %}
+            <button class="btn-primary text-sm" onclick="showCreateAssociateModal()">
+                <svg class="w-4 h-4 mr-1.5 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                </svg>
+                Nouveau
+            </button>
+            {% endif %}
+        </div>
+        
+        <div class="overflow-x-auto">
+            {% if associates %}
+            <table class="table-dark">
+                <thead>
+                    <tr>
+                        <th>Profil</th>
+                        <th>Contrat</th>
+                        <th class="text-right">Montant Engagé</th>
+                        <th>Retour Attendu</th>
+                        <th>Durée</th>
+                        <th>Statut</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for associate in associates %}
+                    {% with contract=associate.contract %}
+                    <tr class="hover:bg-dark-surface2/50 transition-colors">
+                        <td>
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-full bg-accent-warning/20 flex items-center justify-center text-accent-warning font-semibold">
+                                    {{ associate.username|first|upper }}
+                                </div>
+                                <div>
+                                    <p class="font-medium text-text-main">{{ associate.username }}</p>
+                                    <p class="text-xs text-text-muted">{{ associate.email }}</p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="text-text-secondary text-sm">
+                            {% if contract %}#{{ contract.id }}{% else %}—{% endif %}
+                        </td>
+                        <td class="text-right">
+                            {% if contract %}
+                            <span class="font-mono font-medium text-text-main">
+                                ${{ contract.amount_engaged|floatformat:2 }}
+                            </span>
+                            {% else %}—{% endif %}
+                        </td>
+                        <td>
+                            {% if contract %}
+                            <span class="badge badge-success">{{ contract.expected_return_percent }}%</span>
+                            {% else %}—{% endif %}
+                        </td>
+                        <td class="text-text-secondary">
+                            {% if contract and contract.duration_months %}{{ contract.duration_months }} mois{% else %}—{% endif %}
+                        </td>
+                        <td>
+                            {% if contract %}
+                                {% if contract.status == 'ACTIVE' %}
+                                <span class="badge badge-success">Actif</span>
+                                {% else %}
+                                <span class="badge badge-warning">{{ contract.status }}</span>
+                                {% endif %}
+                            {% else %}
+                            <span class="badge badge-warning">Pas de contrat</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endwith %}
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            {% include 'partials/_empty_state.html' with icon='users' title='Aucun associé' message='Les contrats d\'association apparaîtront ici' %}
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+function showCreateAssociateModal() {
+    const modalContent = `
+        <form id="create-associate-form" method="POST" action="{% url 'core:create_associate' %}">
+            {% csrf_token %}
+            <div class="space-y-4">
+                <!-- User Information -->
+                <div>
+                    <h4 class="text-lg font-semibold text-text-main mb-4">Informations Utilisateur</h4>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-text-main mb-2">Nom d'utilisateur *</label>
+                            <input type="text" name="username" required class="input-dark w-full">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-text-main mb-2">Email *</label>
+                            <input type="email" name="email" required class="input-dark w-full">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-text-main mb-2">Mot de passe *</label>
+                            <input type="password" name="password" required class="input-dark w-full">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-text-main mb-2">Téléphone</label>
+                            <input type="text" name="phone" class="input-dark w-full">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-text-main mb-2">Prénom</label>
+                            <input type="text" name="first_name" class="input-dark w-full">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-text-main mb-2">Nom</label>
+                            <input type="text" name="last_name" class="input-dark w-full">
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Contract Information -->
+                <div>
+                    <h4 class="text-lg font-semibold text-text-main mb-4">Informations du Contrat</h4>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-text-main mb-2">Montant engagé *</label>
+                            <input type="number" name="amount_engaged" step="0.01" required class="input-dark w-full">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-text-main mb-2">Devise *</label>
+                            <select name="currency" required class="input-dark w-full">
+                                <option value="">Sélectionner...</option>
+                                {% for currency in currencies %}
+                                <option value="{{ currency.id }}">{{ currency.code }} - {{ currency.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-text-main mb-2">Durée (mois)</label>
+                            <input type="number" name="duration_months" class="input-dark w-full">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-text-main mb-2">Retour attendu (%) *</label>
+                            <input type="number" name="expected_return_percent" step="0.01" required class="input-dark w-full">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="flex justify-end gap-3 mt-6 pt-4 border-t border-dark-border">
+                <button type="button" onclick="closeModal()" class="btn-secondary">Annuler</button>
+                <button type="submit" class="btn-primary">Créer l'Associé</button>
+            </div>
+        </form>
+    `;
+    
+    openModal('Nouvel Associé', modalContent);
+    
+    // Handle form submission
+    document.getElementById('create-associate-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const formData = new FormData(this);
+        const submitBtn = this.querySelector('button[type="submit"]');
+        const originalText = submitBtn.textContent;
+        
+        submitBtn.textContent = 'Création...';
+        submitBtn.disabled = true;
+        
+        fetch(this.action, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showToast('Associé créé avec succès!', 'success');
+                closeModal();
+                // Reload page to show new associate
+                setTimeout(() => location.reload(), 1000);
+            } else {
+                showToast('Erreur: ' + (data.error || 'Veuillez vérifier les champs'), 'error');
+            }
+        })
+        .catch(error => {
+            showToast('Erreur lors de la création', 'error');
+        })
+        .finally(() => {
+            submitBtn.textContent = originalText;
+            submitBtn.disabled = false;
+        });
+    });
+}
+</script>
+{% endblock %}

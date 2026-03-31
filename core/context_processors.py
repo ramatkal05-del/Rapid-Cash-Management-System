@@ -1,4 +1,5 @@
 import json
+from django.db import OperationalError, ProgrammingError
 from operations.models import FeeGrid
 
 def fee_grid_processor(request):
@@ -10,15 +11,23 @@ def fee_grid_processor(request):
         # We only need the reference currency grid (USD) for the UI calculations
         grids = FeeGrid.objects.filter(currency__code='USD').order_by('min_amount')
         
-        grid_list = []
-        for g in grids:
-            grid_list.append({
-                'min': float(g.min_amount),
-                'max': float(g.max_amount),
-                'fee': float(g.fee_amount)
+        # Force evaluation to catch DB errors early
+        grid_list = list(grids.values('min_amount', 'max_amount', 'fee_amount'))
+        
+        # Convert to the expected format
+        result = []
+        for g in grid_list:
+            result.append({
+                'min': float(g['min_amount']),
+                'max': float(g['max_amount']),
+                'fee': float(g['fee_amount'])
             })
             
-        return {'fee_grid_json': json.dumps(grid_list)}
+        return {'fee_grid_json': json.dumps(result)}
+        
+    except (OperationalError, ProgrammingError):
+        # DB not ready or table doesn't exist yet
+        return {'fee_grid_json': '[]'}
     except Exception:
-        # If DB is not ready or no grid exists, return empty array to fallback on JS
+        # Any other error, return empty to fallback on JS
         return {'fee_grid_json': '[]'}

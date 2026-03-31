@@ -52,7 +52,7 @@ services:
 databases:
   - name: rapid-cash-db
     databaseName: rapid_cash
-    plan: starter
+    plan: free
     user: rapid_cash
 
 redis:

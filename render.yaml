@@ -57,5 +57,5 @@ databases:
 
 redis:
   - name: rapid-cash-redis
-    plan: starter
+    plan: free
     ipAllowList: []

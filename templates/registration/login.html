@@ -17,154 +17,417 @@
     <link rel="stylesheet" href="{% load static %}{% static 'css/enhanced.css' %}">
     <style>
         body {
-            background-color: #07080e;
+            background-color: #030407;
             color: #e8eaf6;
             font-family: 'Inter', system-ui, sans-serif;
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
-            background-image:
-                radial-gradient(ellipse at 20% 20%, rgba(79, 142, 247, 0.15) 0%, transparent 50%),
-                radial-gradient(ellipse at 80% 80%, rgba(167, 139, 250, 0.1) 0%, transparent 50%);
+            margin: 0;
+            padding: 0;
+            position: relative;
+            z-index: 1;
+            overflow: hidden;
+        }
+
+        /* Animated Background Gradients */
+        body::before, body::after {
+            content: '';
+            position: absolute;
+            width: 100vw;
+            height: 100vh;
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        body::before {
+            background: radial-gradient(ellipse at 20% 20%, rgba(37, 99, 235, 0.12) 0%, transparent 40%);
+            animation: pulseBg 8s ease-in-out infinite alternate;
+        }
+
+        body::after {
+            background: radial-gradient(ellipse at 80% 80%, rgba(139, 92, 246, 0.08) 0%, transparent 40%);
+            animation: pulseBg 12s ease-in-out infinite alternate-reverse;
+        }
+
+        @keyframes pulseBg {
+            0% { transform: scale(1) translate(0, 0); opacity: 0.8; }
+            100% { transform: scale(1.1) translate(-2%, 2%); opacity: 1; }
         }
 
         .login-card {
-            background: rgba(13, 14, 24, 0.9);
-            border: 1px solid #252640;
+            background: rgba(15, 17, 26, 0.85);
+            border: 1px solid rgba(255, 255, 255, 0.06);
             border-radius: 1.5rem;
             backdrop-filter: blur(20px);
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            box-shadow: 0 30px 60px -12px rgba(0, 0, 0, 0.8), inset 0 1px 0 0 rgba(255, 255, 255, 0.05);
+            width: 100%;
+            padding: 2.5rem;
+            box-sizing: border-box;
+            position: relative;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #94a3b8;
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-family: 'Inter', system-ui, sans-serif;
+            transition: color 0.3s ease;
+        }
+
+        .form-label-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+        }
+
+        .form-label-row .form-label {
+            margin-bottom: 0;
+        }
+
+        .forgot-link {
+            font-size: 0.8125rem;
+            font-weight: 600;
+            color: #3b82f6;
+            text-decoration: none;
+            transition: color 0.2s;
+            font-family: 'Inter', system-ui, sans-serif;
+        }
+
+        .forgot-link:hover {
+            color: #60a5fa;
+        }
+
+        .input-group {
+            position: relative;
+            display: flex;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .input-icon {
+            position: absolute;
+            left: 1.25rem;
+            color: #526075;
+            pointer-events: none;
+            z-index: 10;
+            width: 1.25rem;
+            height: 1.25rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: color 0.3s ease, transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .input-icon svg {
+            width: 1.25rem;
+            height: 1.25rem;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
         }
 
         .input-dark {
-            background: #131421;
-            border: 1px solid #252640;
-            color: #e8eaf6;
-            transition: all 0.2s ease;
+            width: 100%;
+            height: 3.25rem;
+            padding-left: 3.25rem;
+            padding-right: 1.25rem;
+            background: #0b0d14;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 0.75rem;
+            color: #f8fafc;
+            font-size: 0.9375rem;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.5);
+            box-sizing: border-box;
+            font-family: 'Inter', system-ui, sans-serif;
         }
 
         .input-dark:focus {
             outline: none;
-            border-color: #4f8ef7;
-            box-shadow: 0 0 0 3px rgba(79, 142, 247, 0.2);
+            background: #0f121b;
+            border-color: #3b82f6;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.5), 0 0 0 3px rgba(59, 130, 246, 0.2);
+            transform: translateY(-1px);
+        }
+
+        /* Focus states interactions */
+        .input-dark:focus + .input-icon, 
+        .input-group:focus-within .input-icon {
+            color: #3b82f6;
+            transform: scale(1.1);
+        }
+
+        .input-dark:focus {
+            /* Keep label color native logic simple by moving upward if you want */
+        }
+
+        .input-group:focus-within ~ .form-label-row .form-label, 
+        .input-group:focus-within label {
+             /* Hard to target sibling before it, so let CSS alone or reorder DOM, keeping simple */
         }
 
         .input-dark::placeholder {
-            color: #5a5d7a;
+            color: #475569;
+            font-weight: 400;
+            letter-spacing: normal;
+        }
+
+        input[type="password"].input-dark {
+            letter-spacing: 0.15em;
+        }
+        input[type="password"].input-dark::placeholder {
+            letter-spacing: normal;
+        }
+
+        /* WebKit Autofill Fixes */
+        input:-webkit-autofill,
+        input:-webkit-autofill:hover, 
+        input:-webkit-autofill:focus, 
+        input:-webkit-autofill:active {
+            -webkit-box-shadow: 0 0 0 50px #0b0d14 inset !important;
+            -webkit-text-fill-color: #f8fafc !important;
+            transition: background-color 5000s ease-in-out 0s;
+            caret-color: #f8fafc;
         }
 
         .btn-login {
-            background: linear-gradient(135deg, #4f8ef7, #3a7af5);
-            transition: all 0.2s ease;
+            width: 100%;
+            height: 3.25rem;
+            background: linear-gradient(180deg, #3b82f6 0%, #2563eb 100%);
+            border: 1px solid #1d4ed8;
+            border-radius: 0.75rem;
+            color: #ffffff;
+            font-size: 0.9375rem;
+            font-weight: 600;
+            letter-spacing: 0.025em;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2), inset 0 1px 1px rgba(255, 255, 255, 0.2);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: 2rem;
+            cursor: pointer;
+            font-family: inherit;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-login::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 50%;
+            height: 100%;
+            background: linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255,255,255,0.15) 50%, rgba(255,255,255,0) 100%);
+            transform: skewX(-25deg);
+            transition: left 0.6s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .btn-login:hover {
+            background: linear-gradient(180deg, #4facfe 0%, #2563eb 100%);
+            box-shadow: 0 8px 20px rgba(37, 99, 235, 0.35), inset 0 1px 1px rgba(255, 255, 255, 0.3);
             transform: translateY(-2px);
-            box-shadow: 0 10px 30px rgba(79, 142, 247, 0.4);
         }
 
-        .glow-effect {
-            animation: glow 3s ease-in-out infinite alternate;
+        .btn-login:hover::after {
+            left: 200%;
         }
 
-        @keyframes glow {
-            from {
-                box-shadow: 0 0 20px rgba(79, 142, 247, 0.3);
-            }
-
-            to {
-                box-shadow: 0 0 30px rgba(79, 142, 247, 0.5);
-            }
+        .btn-login:active {
+            transform: translateY(0);
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2), inset 0 2px 4px rgba(0, 0, 0, 0.2);
+            transition: all 0.1s;
         }
 
-        .fade-in {
-            animation: fadeIn 0.5s ease forwards;
+        /* Logo & Headers */
+        .logo-container {
+            width: 3.5rem;
+            height: 3.5rem;
+            border-radius: 1rem;
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.5rem auto;
+            position: relative;
+            box-shadow: 0 10px 25px -5px rgba(37, 99, 235, 0.5);
+            border: 1px solid rgba(147, 197, 253, 0.2);
+            animation: float 6s ease-in-out infinite, pulseGlow 4s ease-in-out infinite alternate;
         }
 
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-6px); }
+            100% { transform: translateY(0px); }
         }
+
+        @keyframes pulseGlow {
+            0% { box-shadow: 0 10px 25px -5px rgba(37, 99, 235, 0.4), 0 0 15px rgba(37, 99, 235, 0.1); }
+            100% { box-shadow: 0 15px 35px -5px rgba(37, 99, 235, 0.6), 0 0 35px rgba(59, 130, 246, 0.4); }
+        }
+        
+        .logo-icon {
+            width: 1.8rem;
+            height: 1.8rem;
+            color: #ffffff;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            stroke-width: 2.5;
+        }
+
+        .brand-title {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: #ffffff;
+            letter-spacing: -0.025em;
+            margin-bottom: 0.25rem;
+            margin-top: 0;
+            line-height: 1.2;
+        }
+
+        .brand-subtitle {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #94a3b8;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            margin: 0;
+        }
+
+        .card-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #ffffff;
+            text-align: center;
+            margin-top: 0;
+            margin-bottom: 2rem;
+            letter-spacing: -0.025em;
+        }
+
+        /* Staggered form animations */
+        .fade-in-up {
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        @keyframes fadeInUp {
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .delay-1 { animation-delay: 0.1s; }
+        .delay-2 { animation-delay: 0.2s; }
+        .delay-3 { animation-delay: 0.3s; }
+        .delay-4 { animation-delay: 0.4s; }
+        .delay-5 { animation-delay: 0.5s; }
+        .delay-6 { animation-delay: 0.6s; }
+
     </style>
 </head>
 
 <body>
-    <div class="w-full max-w-md p-8 fade-in">
+    <div class="w-full max-w-md p-8">
         <!-- Logo -->
-        <div class="text-center mb-8">
-            <div
-                class="w-16 h-16 rounded-2xl bg-gradient-to-br from-accent-primary to-accent-purple flex items-center justify-center mx-auto mb-4 glow-effect">
-                <span class="text-white font-bold text-2xl">R</span>
+        <div class="text-center mb-10 fade-in-up delay-1">
+            <div class="logo-container">
+                <svg class="logo-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M4 22L8 4H15C17.7614 4 20 6.23858 20 9C20 11.7614 17.7614 14 15 14H6" stroke="currentColor"/>
+                    <path d="M14 14L18 22" stroke="currentColor"/>
+                    <path d="M3 11H10" stroke="currentColor"/>
+                </svg>
             </div>
-            <h1 class="text-2xl font-bold text-text-main">Rapid Cash</h1>
-            <p class="text-text-secondary text-sm mt-1">Système de Gestion Financière</p>
+            <h1 class="brand-title">Rapid Cash</h1>
+            <p class="brand-subtitle">Plateforme Sécurisée</p>
         </div>
 
         <!-- Login Card -->
-        <div class="login-card p-8">
-            <h2 class="text-xl font-bold text-text-main mb-6 text-center">Connexion</h2>
+        <div class="login-card fade-in-up delay-2">
+            <h2 class="card-title">Connexion</h2>
 
             {% if messages %}
-            <div class="mb-6">
+            <div class="mb-6 space-y-2 fade-in-up delay-3">
                 {% for message in messages %}
-                <div
-                    class="p-4 rounded-lg text-sm font-medium bg-accent-danger/10 border border-accent-danger/20 text-accent-danger">
-                    {{ message }}
+                <div class="p-3.5 rounded-xl border flex items-start gap-3 text-sm font-medium
+                    {% if 'success' in message.tags %}
+                    bg-emerald-500/10 border-emerald-500/20 text-emerald-400
+                    {% elif 'warning' in message.tags %}
+                    bg-amber-500/10 border-amber-500/20 text-amber-400
+                    {% else %}
+                    bg-rose-500/10 border-rose-500/20 text-rose-400
+                    {% endif %}">
+                    {% if 'success' in message.tags %}
+                    <svg class="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                    {% else %}
+                    <svg class="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                    {% endif %}
+                    <p class="mt-0.5">{{ message|safe }}</p>
                 </div>
                 {% endfor %}
             </div>
             {% endif %}
 
             {% if error %}
-            <div class="mb-6 p-4 rounded-lg text-sm font-medium bg-accent-danger/10 border border-accent-danger/20 text-accent-danger">
-                {{ error }}
+            <div class="mb-6 p-3.5 rounded-xl border flex items-start gap-3 text-sm font-medium bg-rose-500/10 border-rose-500/20 text-rose-400 fade-in-up delay-3">
+                <svg class="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                <p class="mt-0.5">{{ error|safe }}</p>
             </div>
             {% endif %}
 
-            <form method="post" action="{% url 'login' %}" class="space-y-5">
+            <form method="post" action="{% url 'login' %}">
                 {% csrf_token %}
                 {% if next %}
                 <input type="hidden" name="next" value="{{ next }}">
                 {% endif %}
 
                 <!-- Username -->
-                <div>
-                    <label for="id_username" class="block text-sm font-medium text-text-secondary mb-2">Nom d'utilisateur</label>
-                    <input type="text" name="username" id="id_username" class="input-dark w-full px-4 py-3 rounded-lg"
-                        placeholder="Entrez votre nom d'utilisateur" required autocomplete="username">
+                <div class="fade-in-up delay-3">
+                    <label for="id_username" class="form-label">Identifiant</label>
+                    <div class="input-group">
+                        <div class="input-icon">
+                            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                            </svg>
+                        </div>
+                        <input type="text" name="username" id="id_username" class="input-dark"
+                            placeholder="Entrez votre identifiant" required autocomplete="username">
+                    </div>
                 </div>
 
                 <!-- Password -->
-                <div>
-                    <label for="id_password" class="block text-sm font-medium text-text-secondary mb-2">Mot de passe</label>
-                    <input type="password" name="password" id="id_password" class="input-dark w-full px-4 py-3 rounded-lg"
-                        placeholder="••••••••" required>
-                </div>
-
-                <div class="flex items-center justify-between">
-                    <a href="{% url 'password_reset' %}" class="text-sm text-accent-primary hover:text-accent-primary-hover font-medium">
-                        Mot de passe oublié ?
-                    </a>
+                <div class="fade-in-up delay-4">
+                    <div class="form-label-row">
+                        <label for="id_password" class="form-label">Mot de passe</label>
+                        <a href="{% url 'password_reset' %}" class="forgot-link">Mot de passe oublié ?</a>
+                    </div>
+                    <div class="input-group">
+                        <div class="input-icon">
+                            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                            </svg>
+                        </div>
+                        <input type="password" name="password" id="id_password" class="input-dark"
+                            placeholder="••••••••" required>
+                    </div>
                 </div>
 
                 <!-- Submit -->
-                <button type="submit" class="btn-login w-full py-3 rounded-lg text-white font-semibold">
+                <button type="submit" class="btn-login fade-in-up delay-5">
                     Se connecter
                 </button>
             </form>
         </div>
 
         <!-- Footer -->
-        <p class="text-center text-text-muted text-xs mt-8">
-            2026 Rapid Cash. Système Financier.
+        <p class="text-center text-slate-500 font-medium text-xs mt-8 fade-in-up delay-6" style="font-family: 'Inter', sans-serif;">
+            &copy; 2026 Rapid Cash
         </p>
     </div>
 </body>

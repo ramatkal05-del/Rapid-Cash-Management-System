@@ -109,8 +109,24 @@ WSGI_APPLICATION = "config.wsgi.application"
 import os
 from urllib.parse import urlparse
 
-# Check if running collectstatic (build phase) - use SQLite to avoid DB connection
-if 'collectstatic' in sys.argv:
+# Get DATABASE_URL from environment
+db_url = os.environ.get('DATABASE_URL', '')
+
+if db_url.startswith('postgresql'):
+    # PostgreSQL configuration via DATABASE_URL (Render production)
+    parsed = urlparse(db_url)
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.postgresql",
+            "NAME": parsed.path[1:],  # Remove leading /
+            "USER": parsed.username,
+            "PASSWORD": parsed.password,
+            "HOST": parsed.hostname,
+            "PORT": parsed.port or 5432,
+        }
+    }
+elif db_url.startswith('sqlite'):
+    # SQLite configuration (local development)
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.sqlite3",
@@ -118,42 +134,13 @@ if 'collectstatic' in sys.argv:
         }
     }
 else:
-    # Parse the DATABASE_URL to determine which database to use
-    db_url = os.environ.get('DATABASE_URL', '')
-
-    if db_url.startswith('postgresql'):
-        # PostgreSQL configuration via DATABASE_URL
-        parsed = urlparse(db_url)
-        DATABASES = {
-            "default": {
-                "ENGINE": "django.db.backends.postgresql",
-                "NAME": parsed.path[1:],  # Remove leading /
-                "USER": parsed.username,
-                "PASSWORD": parsed.password,
-                "HOST": parsed.hostname,
-                "PORT": parsed.port or 5432,
-            }
+    # No DATABASE_URL set - use SQLite (for collectstatic during build)
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": BASE_DIR / "db.sqlite3",
         }
-    elif db_url.startswith('sqlite'):
-        # SQLite configuration (local development)
-        DATABASES = {
-            "default": {
-                "ENGINE": "django.db.backends.sqlite3",
-                "NAME": BASE_DIR / "db.sqlite3",
-            }
-        }
-    else:
-        # Default: Use environment variables for PostgreSQL
-        DATABASES = {
-            "default": {
-                "ENGINE": "django.db.backends.postgresql",
-                "NAME": env("DB_NAME", "rapid_cash"),
-                "USER": env("DB_USER", "postgres"),
-                "PASSWORD": env("DB_PASSWORD", "postgres"),
-                "HOST": env("DB_HOST", "localhost"),
-                "PORT": env.int("DB_PORT", 5433),
-            }
-        }
+    }
 
 
 # Password validation

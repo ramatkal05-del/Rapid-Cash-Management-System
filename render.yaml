@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: rapid-cash-management
+    runtime: python
+    plan: free
+    buildCommand: "./build.sh"
+    startCommand: "./release.sh && gunicorn config.wsgi:application"
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DEBUG
+        value: "False"
+      - key: DJANGO_SETTINGS_MODULE
+        value: "config.production"
+    healthCheckPath: /

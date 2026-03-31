@@ -11,8 +11,9 @@ DEBUG = False
 # Generate secure secret key in production
 SECRET_KEY = os.environ.get('SECRET_KEY')
 
-# Restrict allowed hosts
-ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '').split(',')
+# Restrict allowed hosts - include Render domains automatically
+env_hosts = os.environ.get('ALLOWED_HOSTS', '').split(',') if os.environ.get('ALLOWED_HOSTS') else []
+ALLOWED_HOSTS = ['rapid-cash-management-system-2.onrender.com', '.onrender.com', 'localhost', '127.0.0.1'] + env_hosts
 
 # Security settings
 SECURE_SSL_REDIRECT = True

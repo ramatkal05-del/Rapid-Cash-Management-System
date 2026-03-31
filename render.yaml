@@ -16,15 +16,11 @@ services:
         fromDatabase:
           name: rapid-cash-db
           property: connectionString
-      - key: REDIS_URL
-        fromService:
-          type: redis
-          name: rapid-cash-redis
-          property: connectionString
       - key: DEBUG
         value: False
       - key: ALLOWED_HOSTS
         value: "rapid-cash.onrender.com,localhost"
+      # Note: Add REDIS_URL manually after creating Redis instance
 
   - type: worker
     name: rapid-cash-celery
@@ -43,19 +39,10 @@ services:
         fromDatabase:
           name: rapid-cash-db
           property: connectionString
-      - key: REDIS_URL
-        fromService:
-          type: redis
-          name: rapid-cash-redis
-          property: connectionString
+      # Note: Add REDIS_URL manually after creating Redis instance
 
 databases:
   - name: rapid-cash-db
     databaseName: rapid_cash
     plan: free
     user: rapid_cash
-
-redis:
-  - name: rapid-cash-redis
-    plan: free
-    ipAllowList: []

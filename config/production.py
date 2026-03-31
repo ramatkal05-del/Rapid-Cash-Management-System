@@ -40,10 +40,30 @@ if IS_COLLECTSTATIC:
         }
     }
 else:
-    # Real PostgreSQL config for runtime
+    # Real PostgreSQL config for runtime using DATABASE_URL
+    import os
     import dj_database_url
-    db_from_env = dj_database_url.config(conn_max_age=500)
-    DATABASES['default'].update(db_from_env)
+    
+    # Get DATABASE_URL from environment
+    database_url = os.environ.get('DATABASE_URL')
+    
+    if database_url:
+        # Parse DATABASE_URL
+        DATABASES = {
+            'default': dj_database_url.parse(database_url, conn_max_age=600)
+        }
+    else:
+        # Fallback (should not happen in production)
+        DATABASES = {
+            'default': {
+                'ENGINE': 'django.db.backends.postgresql',
+                'NAME': os.environ.get('DB_NAME', 'rapid_cash'),
+                'USER': os.environ.get('DB_USER', 'postgres'),
+                'PASSWORD': os.environ.get('DB_PASSWORD', ''),
+                'HOST': os.environ.get('DB_HOST', 'localhost'),
+                'PORT': os.environ.get('DB_PORT', '5432'),
+            }
+        }
 
 # Redis Cache configuration (Fly.io Redis or Upstash)
 REDIS_URL = os.environ.get('REDIS_URL', os.environ.get('FLY_REDIS_CACHE_URL', 'redis://localhost:6379/1'))

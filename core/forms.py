@@ -1,6 +1,7 @@
 from django import forms
 from django.contrib.auth import get_user_model
-from finance.models import Currency, PartnerContract
+from core.models import Currency
+from finance.models import PartnerContract
 
 User = get_user_model()
 

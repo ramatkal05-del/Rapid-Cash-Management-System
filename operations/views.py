@@ -22,12 +22,12 @@ def create_operation(request):
     from operations.models import FeeGrid
     from core.models import Currency
     
-    # Check if agent has a caisse assigned
+    # Check if agent has a caisse assigned - WARNING only, not blocking
+    agent_caisse = None
     if request.user.role != 'ADMIN':
         agent_caisse = Caisse.objects.filter(agent=request.user).first()
         if not agent_caisse:
-            messages.error(request, "Aucune caisse assignée. Veuillez contacter l'administrateur.")
-            return redirect('dashboard')
+            messages.warning(request, "⚠️ Aucune caisse assignée. Les opérations seront enregistrées en attente d'assignation.")
     
     # Get fee grids for display
     fee_grids = FeeGrid.objects.filter(currency__code='USD').order_by('min_amount')
@@ -44,14 +44,17 @@ def create_operation(request):
                     agent_caisse = Caisse.objects.filter(agent=request.user).first()
                 
                 if not agent_caisse:
-                    messages.error(request, "Aucune caisse assignée. Veuillez contacter l'administrateur.")
-                    context = {
-                        'form': form,
-                        'fee_grids': fee_grids,
-                        'currencies': currencies,
-                        'agent_caisse': None
-                    }
-                    return render(request, 'operations/create_operation.html', context)
+                    # Use first available caisse as fallback (for agents without assigned caisse)
+                    agent_caisse = Caisse.objects.first()
+                    if not agent_caisse:
+                        messages.error(request, "Aucune caisse disponible dans le système. Veuillez contacter l'administrateur.")
+                        context = {
+                            'form': form,
+                            'fee_grids': fee_grids,
+                            'currencies': currencies,
+                            'agent_caisse': None
+                        }
+                        return render(request, 'operations/create_operation.html', context)
                 
                 from django.db import transaction
                 

@@ -111,8 +111,13 @@ class OperationViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_201_CREATED
             )
         except Exception as e:
+            # Log the actual error for debugging but return generic message
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.error(f"Error creating operation: {str(e)}")
+            
             return Response(
-                {'error': str(e)},
+                {'error': 'Une erreur est survenue lors de la création de l\'opération. Veuillez réessayer ou contacter l\'administrateur.'},
                 status=status.HTTP_400_BAD_REQUEST
             )
     

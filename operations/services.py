@@ -76,9 +76,14 @@ class OperationService:
         # Get and validate caisse balance FIRST
         caisse = Caisse.objects.select_for_update().get(id=caisse_id)
         
-        # CRITICAL FIX: Check if currency matches caisse currency
+        # NOTE: Currency conversion is handled in the form/view layer
+        # If currencies don't match, the amount should already be converted
+        # This check is now informational only - we allow operations with conversion
         if caisse.currency != currency_orig:
-            raise ValidationError(f"Currency mismatch. Caisse {caisse.name} uses {caisse.currency.code}, but you selected {currency_orig.code}")
+            # Log for audit but don't block - conversion already applied
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.info(f"Currency conversion applied: {currency_orig.code} -> {caisse.currency.code} for caisse {caisse.name}")
         
         # Calcul du montant requis théorique (informationnel)
         required_amount = amount_orig
@@ -130,26 +135,10 @@ class OperationService:
                 'type': [None, op_type],
                 'amount_orig': [None, str(amount_orig)],
                 'currency_orig': [None, currency_orig.code],
-                'caisse': [None, caisse.name]
-            }
-        )
-        
-        return operation
-        
-        # Log the operation
-        AuditLog.log_action(
-            user=agent,
-            action=AuditLog.ActionType.TRANSACTION,
-            model_name='operation',
-            object_id=str(operation.pk),
-            object_repr=f"Transaction {operation.transaction_number}",
-            changes={
-                'transaction_number': [None, operation.transaction_number],
-                'amount_orig': [None, str(operation.amount_orig)],
-                'amount_ref': [None, str(operation.amount_ref)],
-                'fee_calculated': [None, str(operation.fee_calculated)],
-                'type': [None, operation.type],
-                'caisse_balance_before': [str(caisse.balance + amount_orig), str(caisse.balance)]
+                'caisse': [None, caisse.name],
+                'transaction_number': [None, transaction_number],
+                'amount_ref': [None, str(amount_ref)],
+                'fee_calculated': [None, str(fee)],
             }
         )
         

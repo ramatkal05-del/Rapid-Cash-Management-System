@@ -63,11 +63,9 @@ def create_operation(request):
                 if hasattr(form, 'converted_amount') and form.converted_amount:
                     amount_to_use = form.converted_amount
                     currency_to_use = form.converted_currency
-                    messages.info(
-                        request, 
-                        f"Conversion appliquée: {form.cleaned_data['amount_orig']} {form.cleaned_data['currency_orig'].code} = "
-                        f"{amount_to_use:.2f} {currency_to_use.code} (taux: {form.exchange_rate_used:.6f})"
-                    )
+                    # Use the conversion info stored in form
+                    if hasattr(form, 'conversion_info'):
+                        messages.info(request, form.conversion_info)
                 
                 with transaction.atomic():
                     OperationService.create_operation(

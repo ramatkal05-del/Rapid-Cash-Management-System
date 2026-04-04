@@ -104,7 +104,8 @@ class OperationForm(forms.ModelForm):
                     self.converted_amount = converted_amount
                     self.converted_currency = agent_caisse.currency
                     self.exchange_rate_used = rate_decimal
-                    self.add_error(None, f"Conversion automatique: {amount} {currency.code} = {converted_amount:.2f} {agent_caisse.currency.code} (taux: {rate_decimal})")
+                    # Store info message for display (non-blocking)
+                    self.conversion_info = f"Conversion automatique: {amount} {currency.code} = {converted_amount:.2f} {agent_caisse.currency.code} (taux: {rate_decimal})"
                 else:
                     # Try inverse rate
                     inverse_rate_obj = ExchangeRate.objects.filter(
@@ -119,14 +120,17 @@ class OperationForm(forms.ModelForm):
                         self.converted_amount = converted_amount
                         self.converted_currency = agent_caisse.currency
                         self.exchange_rate_used = Decimal('1') / rate_decimal
-                        self.add_error(None, f"Conversion automatique: {amount} {currency.code} = {converted_amount:.2f} {agent_caisse.currency.code} (taux: {self.exchange_rate_used:.6f})")
+                        # Store info message for display (non-blocking)
+                        self.conversion_info = f"Conversion automatique: {amount} {currency.code} = {converted_amount:.2f} {agent_caisse.currency.code} (taux: {self.exchange_rate_used:.6f})"
                     else:
                         raise forms.ValidationError(
                             f"Pas de taux de change trouvé entre {currency.code} et {agent_caisse.currency.code}. "
                             f"Veuillez configurer le taux dans Gestion > Taux de Change."
                         )
-            except Exception as e:
-                raise forms.ValidationError(f"Erreur de conversion: {str(e)}")
+            except ValidationError:
+                raise
+            except Exception:
+                raise forms.ValidationError("Impossible de convertir cette devise. Vérifiez les taux de change ou contactez l'administrateur.")
         
         # Check balance (using converted amount if applicable) - RETIRÉ (Les agents ne sont plus bloqués)
         check_amount = getattr(self, 'converted_amount', amount)

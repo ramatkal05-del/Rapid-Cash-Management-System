@@ -22,15 +22,49 @@ def setup_admin_and_caisse():
         {'code': 'CDF', 'name': 'Franc Congolais', 'symbol': 'FC'},
         {'code': 'EUR', 'name': 'Euro', 'symbol': '€'},
         {'code': 'GBP', 'name': 'Livre Sterling', 'symbol': '£'},
+        {'code': 'TL', 'name': 'Livre Turque', 'symbol': '₺'},
     ]
     
+    currencies = {}
     for curr in currencies_data:
         currency, created = Currency.objects.get_or_create(
             code=curr['code'],
             defaults={'name': curr['name'], 'symbol': curr['symbol']}
         )
+        currencies[curr['code']] = currency
         if created:
             print(f"✅ Devise créée: {curr['code']} - {curr['name']}")
+    
+    # Créer les taux de change par défaut
+    from core.models import ExchangeRate
+    exchange_rates = [
+        # USD base rates
+        {'base': 'USD', 'target': 'CDF', 'rate': 2800.00},
+        {'base': 'USD', 'target': 'EUR', 'rate': 0.92},
+        {'base': 'USD', 'target': 'GBP', 'rate': 0.79},
+        {'base': 'USD', 'target': 'TL', 'rate': 32.50},
+        # EUR base rates
+        {'base': 'EUR', 'target': 'CDF', 'rate': 3043.00},
+        {'base': 'EUR', 'target': 'GBP', 'rate': 0.86},
+        {'base': 'EUR', 'target': 'TL', 'rate': 35.30},
+        # GBP base rates
+        {'base': 'GBP', 'target': 'CDF', 'rate': 3542.00},
+        {'base': 'GBP', 'target': 'TL', 'rate': 41.00},
+        # TL base rates
+        {'base': 'TL', 'target': 'CDF', 'rate': 86.15},
+    ]
+    
+    for rate_data in exchange_rates:
+        base_curr = currencies.get(rate_data['base'])
+        target_curr = currencies.get(rate_data['target'])
+        if base_curr and target_curr:
+            rate_obj, created = ExchangeRate.objects.get_or_create(
+                base_currency=base_curr,
+                target_currency=target_curr,
+                defaults={'rate': rate_data['rate']}
+            )
+            if created:
+                print(f"✅ Taux créé: {rate_data['base']} → {rate_data['target']}: {rate_data['rate']}")
     
     # Créer ou mettre à jour kizy
     user, created = User.objects.get_or_create(

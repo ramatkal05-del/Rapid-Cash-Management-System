@@ -11,10 +11,27 @@ django.setup()
 from django.contrib.auth import get_user_model
 from axes.utils import reset
 from finance.models import Caisse
+from core.models import Currency
 
 User = get_user_model()
 
 def setup_admin_and_caisse():
+    # Créer les devises d'abord
+    currencies_data = [
+        {'code': 'USD', 'name': 'Dollar Américain', 'symbol': '$'},
+        {'code': 'CDF', 'name': 'Franc Congolais', 'symbol': 'FC'},
+        {'code': 'EUR', 'name': 'Euro', 'symbol': '€'},
+        {'code': 'GBP', 'name': 'Livre Sterling', 'symbol': '£'},
+    ]
+    
+    for curr in currencies_data:
+        currency, created = Currency.objects.get_or_create(
+            code=curr['code'],
+            defaults={'name': curr['name'], 'symbol': curr['symbol']}
+        )
+        if created:
+            print(f"✅ Devise créée: {curr['code']} - {curr['name']}")
+    
     # Créer ou mettre à jour kizy
     user, created = User.objects.get_or_create(
         username='kizy',

@@ -22,7 +22,7 @@ except Exception as e:
 try:
     from django.contrib.auth import get_user_model
     from axes.utils import reset
-    from finance.models import Caisse
+    from operations.models import Caisse
     from core.models import Currency
     User = get_user_model()
 except Exception as e:

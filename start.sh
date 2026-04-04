@@ -11,9 +11,9 @@ python manage.py collectstatic --noinput
 echo "Running database migrations..."
 python manage.py migrate --noinput
 
-# Create/update admin user
-echo "Creating/updating admin user kizy..."
-python create_admin.py || echo "Warning: Could not create admin user"
+# Create/update admin user and setup caisses
+echo "Setting up admin user and caisses..."
+python setup_render.py || echo "Warning: Setup script failed"
 
 echo "Starting Gunicorn..."
 exec gunicorn config.wsgi:application --bind 0.0.0.0:$PORT --workers 2 --threads 4 --timeout 60

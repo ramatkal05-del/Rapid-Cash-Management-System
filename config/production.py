@@ -115,3 +115,12 @@ LOGGING = {
 # Ensure logs directory exists
 import os
 os.makedirs(os.path.join(BASE_DIR, 'logs'), exist_ok=True)
+
+# Serve media files in production using whitenoise
+# Note: For persistent media storage, use AWS S3 or Cloudinary
+MIDDLEWARE.insert(2, 'whitenoise.middleware.WhiteNoiseMiddleware')
+
+# Add media files serving (files will be ephemeral on Render free tier)
+import os
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+os.makedirs(MEDIA_ROOT, exist_ok=True)
